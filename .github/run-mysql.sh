@@ -12,3 +12,10 @@ mysqld \
   --log-bin=/var/lib/mysql/mysql-bin.log \
   --binlog-format=row \
   --max_allowed_packet=64M
+
+while :
+do
+  sleep 3
+  mysql --protocol=tcp -e 'select version()' && break
+done
+
