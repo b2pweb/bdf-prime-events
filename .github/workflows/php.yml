@@ -43,14 +43,14 @@ jobs:
 
     - name: Configure databases and users
       run: >
-        docker exec -it master mysql -u root -e "create database test";
-        docker exec -it master mysql -u root -e "create user test_events IDENTIFIED BY 'password'";
-        docker exec -it master mysql -u root -e "grant all privileges on test.* to test_events";
-        docker exec -it master mysql -u root -e "grant replication slave, replication client on *.* to test_events";
-        docker exec -it master mysql -u root -e "create database other";
-        docker exec -it master mysql -u root -e "create user other_user IDENTIFIED BY 'other_pass'";
-        docker exec -it master mysql -u root -e "grant all privileges on other.* to other_user";
-        docker exec -it master mysql -u root -e "grant replication slave, replication client on *.* to other_user";
+        docker exec master mysql -u root -e "create database test";
+        docker exec master mysql -u root -e "create user test_events IDENTIFIED BY 'password'";
+        docker exec master mysql -u root -e "grant all privileges on test.* to test_events";
+        docker exec master mysql -u root -e "grant replication slave, replication client on *.* to test_events";
+        docker exec master mysql -u root -e "create database other";
+        docker exec master mysql -u root -e "create user other_user IDENTIFIED BY 'other_pass'";
+        docker exec master mysql -u root -e "grant all privileges on other.* to other_user";
+        docker exec master mysql -u root -e "grant replication slave, replication client on *.* to other_user";
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
