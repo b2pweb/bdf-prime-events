@@ -40,17 +40,17 @@ jobs:
 #        mysql root password: ''
 #        mysql user: 'test_events'
 #        mysql password: 'password'
-
-    - name: Configure databases and users
-      run: >
-        mysql -e "create database test";
-        mysql -e "create user test_events IDENTIFIED BY 'password'";
-        mysql -e "grant all privileges on test.* to test_events";
-        mysql -e "grant replication slave, replication client on *.* to test_events";
-        mysql -e "create database other";
-        mysql -e "create user other_user IDENTIFIED BY 'other_pass'";
-        mysql -e "grant all privileges on other.* to other_user";
-        mysql -e "grant replication slave, replication client on *.* to other_user";
+#
+#    - name: Configure databases and users
+#      run: >
+#        docker exec mysql mysql --protocol=tcp -e "create database test";
+#        docker exec mysql mysql --protocol=tcp -e "create user test_events IDENTIFIED BY 'password'";
+#        docker exec mysql mysql --protocol=tcp -e "grant all privileges on test.* to test_events";
+#        docker exec mysql mysql --protocol=tcp -e "grant replication slave, replication client on *.* to test_events";
+#        docker exec mysql mysql --protocol=tcp -e "create database other";
+#        docker exec mysql mysql --protocol=tcp -e "create user other_user IDENTIFIED BY 'other_pass'";
+#        docker exec mysql mysql --protocol=tcp -e "grant all privileges on other.* to other_user";
+#        docker exec mysql mysql --protocol=tcp -e "grant replication slave, replication client on *.* to other_user";
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
