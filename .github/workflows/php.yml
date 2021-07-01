@@ -13,8 +13,6 @@ jobs:
       matrix:
         php-versions: ['7.1', '7.2', '7.3', '7.4']
     name: PHP ${{ matrix.php-versions }}
-    env:
-      ELASTICSEARCH_HOST: "127.0.0.1:9200"
 
     steps:
     - uses: actions/checkout@v2
@@ -42,11 +40,11 @@ jobs:
 
     - name: Configure databases and users
       run: >
-        mysql -u root -e "create database other"
-        mysql -u root -e "create user other_user IDENTIFIED BY 'other_pass'"
-        mysql -u root -e "grant all privileges on other.* to other_user"
-        mysql -u root -e "grant replication slave, replication client on *.* to test_events"
-        mysql -u root -e "grant replication slave, replication client on *.* to other_user"
+        mysql -u root -e "create database other";
+        mysql -u root -e "create user other_user IDENTIFIED BY 'other_pass'";
+        mysql -u root -e "grant all privileges on other.* to other_user";
+        mysql -u root -e "grant replication slave, replication client on *.* to test_events";
+        mysql -u root -e "grant replication slave, replication client on *.* to other_user";
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
