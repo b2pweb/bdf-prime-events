@@ -1,0 +1,25 @@
+prime:
+  activerecord: true
+  default_connection: 'test'
+  connections:
+    test: 'mysql://test_events:password@127.0.0.1/test'
+    other: 'mysql://root@127.0.0.1/other'
+
+  migration:
+    connection: 'test'
+    path: '%kernel.project_dir%/src/Migration'
+  profiling: true
+
+prime_events:
+  other:
+    user: other_user
+    password: other_pass
+    logPositionFile: '%kernel.project_dir%/var/events'
+
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  Tests\PrimeEvents\TestFiles\:
+    resource: './TestFiles'

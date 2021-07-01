@@ -1,0 +1,12 @@
+services:
+    Bdf\PrimeEvents\Factory\ConsumersFactory:
+        class: Bdf\PrimeEvents\Factory\ConsumersFactory
+        arguments:
+            - '@prime'
+        public: true
+
+    Bdf\PrimeEvents\Console\ConsumePrimeEvents:
+        class: Bdf\PrimeEvents\Console\ConsumePrimeEvents
+        arguments:
+            - '@Bdf\PrimeEvents\Factory\ConsumersFactory'
+        tags: ['console.command']
