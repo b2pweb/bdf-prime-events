@@ -32,9 +32,9 @@ jobs:
       run: php -v
 
     - name: Install MySQL
-      run: >
-        docker pull mottox/mysql-replication;
-        docker run --name master -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_ROOT_HOST=% -e SERVER_ID=1 -d mottox/mysql-replication;
+      run: ./.github/run-mysql.sh
+#        docker pull mottox/mysql-replication;
+#        docker run --name master -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_ROOT_HOST=% -e SERVER_ID=1 -d mottox/mysql-replication;
 #      uses: mirromutth/mysql-action@v1.1
 #      with:
 #        mysql root password: ''
@@ -43,14 +43,14 @@ jobs:
 
     - name: Configure databases and users
       run: >
-        docker exec master mysql -u root -e "create database test";
-        docker exec master mysql -u root -e "create user test_events IDENTIFIED BY 'password'";
-        docker exec master mysql -u root -e "grant all privileges on test.* to test_events";
-        docker exec master mysql -u root -e "grant replication slave, replication client on *.* to test_events";
-        docker exec master mysql -u root -e "create database other";
-        docker exec master mysql -u root -e "create user other_user IDENTIFIED BY 'other_pass'";
-        docker exec master mysql -u root -e "grant all privileges on other.* to other_user";
-        docker exec master mysql -u root -e "grant replication slave, replication client on *.* to other_user";
+        mysql -e "create database test";
+        mysql -e "create user test_events IDENTIFIED BY 'password'";
+        mysql -e "grant all privileges on test.* to test_events";
+        mysql -e "grant replication slave, replication client on *.* to test_events";
+        mysql -e "create database other";
+        mysql -e "create user other_user IDENTIFIED BY 'other_pass'";
+        mysql -e "grant all privileges on other.* to other_user";
+        mysql -e "grant replication slave, replication client on *.* to other_user";
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
