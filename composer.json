@@ -22,7 +22,7 @@
     },
     "require": {
         "php": ">=7.1",
-        "b2pweb/bdf-prime": "dev-master#7599e28f6f5c1dafe7891761c25287487ea59403",
+        "b2pweb/bdf-prime": "1.1.*",
         "krowinski/php-mysql-replication": "~6.2"
     },
     "require-dev": {
