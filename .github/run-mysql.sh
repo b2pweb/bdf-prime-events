@@ -1,7 +1,7 @@
 #!/bin/bash
 
 mysql() {
-  docker exec mysql mysql "${@}"
+  docker exec mysql mysql --protocol=tcp "${@}"
 }
 
 docker run -p 0.0.0.0:3306:3306 -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_ROOT_HOST=% --name=mysql -d mysql:5.7 \
@@ -16,6 +16,5 @@ mysqld \
 while :
 do
   sleep 3
-  mysql --protocol=tcp -e 'select version()' && break
+  mysql -e 'select version()' && break
 done
-
