@@ -10,6 +10,8 @@ use Bdf\Prime\Repository\RepositoryInterface;
 
 /**
  * Listener for database entities writes
+ *
+ * @todo set entity template when feature psalm is merged
  */
 final class EntityEventsListener
 {
@@ -50,6 +52,7 @@ final class EntityEventsListener
     }
 
     /**
+     * @param array{before: array, after: array} $value
      * @internal
      */
     public function onUpdate(array $value): void

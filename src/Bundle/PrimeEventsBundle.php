@@ -13,13 +13,14 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 class PrimeEventsBundle extends Bundle
 {
-    public function build(ContainerBuilder $container)
+    public function build(ContainerBuilder $container): void
     {
         $container->addCompilerPass(new class implements CompilerPassInterface {
-            public function process(ContainerBuilder $container)
+            public function process(ContainerBuilder $container): void
             {
                 $definition = $container->findDefinition(ConsumersFactory::class);
 
+                /** @var string $id */
                 foreach ($container->findTaggedServiceIds('prime.events.listener') as $id => $_) {
                     $definition->addMethodCall('register', [new Reference($id)]);
                 }

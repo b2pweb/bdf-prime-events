@@ -2,6 +2,7 @@
 
 namespace Bdf\PrimeEvents\Bundle\DependencyInjection;
 
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -12,11 +13,17 @@ class Configuration implements ConfigurationInterface
 {
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress PossiblyNullReference
+     * @psalm-suppress PossiblyUndefinedMethod
      */
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder('prime_events');
-        $treeBuilder->getRootNode()
+        /** @var ArrayNodeDefinition $root */
+        $root = $treeBuilder->getRootNode();
+
+        $root
             ->useAttributeAsKey('connection')
             ->arrayPrototype()
                 ->children()

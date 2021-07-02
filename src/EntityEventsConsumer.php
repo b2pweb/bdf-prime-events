@@ -56,12 +56,12 @@ final class EntityEventsConsumer extends EventSubscribers
     private $configurator;
 
     /**
-     * @var EntityEventsListener[]
+     * @var array<class-string, EntityEventsListener>
      */
     private $entityListenersByEntityClass = [];
 
     /**
-     * @var EntityEventsListener[]
+     * @var array<string, EntityEventsListener>
      */
     private $entityListenersByTable = [];
 
@@ -109,7 +109,7 @@ final class EntityEventsConsumer extends EventSubscribers
      * ;
      * </code>
      *
-     * @param string $entityClass The entity class name
+     * @param class-string $entityClass The entity class name
      *
      * @return EntityEventsListener The listener instance
      */
@@ -122,7 +122,10 @@ final class EntityEventsConsumer extends EventSubscribers
         $repository = $this->prime->repository($entityClass);
         $listener = new EntityEventsListener($repository);
 
-        return $this->entityListenersByTable[$repository->metadata()->table()] = $this->entityListenersByEntityClass[$entityClass] = $listener;
+        return $this->entityListenersByTable[$repository->metadata()->table()]
+            = $this->entityListenersByEntityClass[$entityClass]
+            = $listener
+        ;
     }
 
     /**
@@ -134,6 +137,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         $listener = $this->entityListenersByTable[$event->getTableMap()->getTable()];
 
+        /** @var array $value */
         foreach ($event->getValues() as $value) {
             $listener->onDelete($value);
         }
@@ -148,6 +152,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         $listener = $this->entityListenersByTable[$event->getTableMap()->getTable()];
 
+        /** @var array $value */
         foreach ($event->getValues() as $value) {
             $listener->onWrite($value);
         }
@@ -162,6 +167,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         $listener = $this->entityListenersByTable[$event->getTableMap()->getTable()];
 
+        /** @var array{before: array, after: array} $value */
         foreach ($event->getValues() as $value) {
             $listener->onUpdate($value);
         }
@@ -177,6 +183,8 @@ final class EntityEventsConsumer extends EventSubscribers
 
     /**
      * Configure the consumer
+     *
+     * @psalm-assert MySQLReplicationFactory $this->binLogStream
      */
     public function start(): void
     {
@@ -202,6 +210,8 @@ final class EntityEventsConsumer extends EventSubscribers
 
     /**
      * Unconfigure the consumer, and save the last consumed event
+     *
+     * @psalm-assert null $this->binLogStream
      */
     public function stop(): void
     {
@@ -230,12 +240,18 @@ final class EntityEventsConsumer extends EventSubscribers
 
             if ($connection instanceof Connection) {
                 if ($connection->getDatabasePlatform()->getName() !== 'mysql') {
-                    throw new InvalidArgumentException(sprintf('The connection "%s" must be a MySQL connection', $connection->getName()));
+                    throw new InvalidArgumentException(sprintf(
+                        'The connection "%s" must be a MySQL connection',
+                        $connection->getName()
+                    ));
                 }
 
-                $username = $username ?? $connection->getParams()['user'] ?? null;
-                $password = $password ?? $connection->getParams()['password'] ?? null;
-                $host = $host ?? $connection->getParams()['host'] ?? null;
+                /** @psalm-suppress InternalMethod */
+                $params = $connection->getParams();
+
+                $username = $username ?? $params['user'] ?? null;
+                $password = $password ?? $params['password'] ?? null;
+                $host = $host ?? $params['host'] ?? null;
             }
         }
 
@@ -281,7 +297,10 @@ final class EntityEventsConsumer extends EventSubscribers
             return;
         }
 
-        $content = unserialize(file_get_contents($this->logPositionFile), ['allowed_classes' => [BinLogCurrent::class]]);
+        $content = unserialize(
+            file_get_contents($this->logPositionFile),
+            ['allowed_classes' => [BinLogCurrent::class]]
+        );
 
         if (!$content instanceof BinLogCurrent) {
             return;

@@ -39,7 +39,7 @@ final class ConsumerConfiguration
      *
      * @param ConfigBuilder $builder
      */
-    public function configure(ConfigBuilder $builder)
+    public function configure(ConfigBuilder $builder): void
     {
         foreach ($this->config as $item => $value) {
             $method = 'with' . $item;

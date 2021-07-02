@@ -45,41 +45,34 @@ jobs:
 
     - name: Run test suite
       run: composer run-script tests
-#
-#  analysis:
-#    name: Analysis
-#    runs-on: ubuntu-latest
-#    env:
-#      ELASTICSEARCH_HOST: "127.0.0.1:9200"
-#
-#    steps:
-#    - uses: actions/checkout@v2
-#
-#    - name: Set Timezone
-#      uses: szenius/set-timezone@v1.0
-#      with:
-#        timezoneLinux: "Europe/Paris"
-#
-#    - name: Install PHP
-#      uses: shivammathur/setup-php@v2
-#      with:
-#        php-version: 7.4
-#        extensions: json
-#        ini-values: date.timezone=Europe/Paris
-##
-##    - name: Install Infection
-##      run: composer global require infection/infection
-#
-#    - name: Validate composer.json and composer.lock
-#      run: composer validate --strict
-#
-#    - name: Install dependencies
-#      run: composer install --prefer-dist --no-progress
-#
-#    - name: Run type coverage
-#      run: composer run-script psalm
 
-#    - name: Run Infection
-#      run: |
-#        git fetch --depth=1 origin $GITHUB_BASE_REF
-#        ~/.composer/vendor/bin/infection --logger-github --git-diff-filter=AM
+  analysis:
+    name: Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set Timezone
+      uses: szenius/set-timezone@v1.0
+      with:
+        timezoneLinux: "Europe/Paris"
+
+    - name: Install PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 7.4
+        extensions: json
+        ini-values: date.timezone=Europe/Paris
+
+    - name: Install MySQL
+      run: ./.github/run-mysql.sh
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run type coverage
+      run: composer run-script psalm

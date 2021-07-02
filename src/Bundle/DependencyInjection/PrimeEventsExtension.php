@@ -4,6 +4,7 @@ namespace Bdf\PrimeEvents\Bundle\DependencyInjection;
 
 use Bdf\PrimeEvents\Factory\ConsumersFactory;
 use Bdf\PrimeEvents\Factory\EntityEventsListenerInterface;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -17,8 +18,9 @@ class PrimeEventsExtension extends Extension
     /**
      * {@inheritdoc}
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
+        /** @var ConfigurationInterface $configuration */
         $configuration = $this->getConfiguration($configs, $container);
         $config = $this->processConfiguration($configuration, $configs);
 

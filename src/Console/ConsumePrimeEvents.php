@@ -35,12 +35,12 @@ class ConsumePrimeEvents extends Command
     private $running = true;
 
     /**
-     * @var int
+     * @var int|null
      */
     private $maxMemory = null;
 
     /**
-     * @var int
+     * @var int|null
      */
     private $limit = null;
 
@@ -60,7 +60,7 @@ class ConsumePrimeEvents extends Command
     /**
      * {@inheritdoc}
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setDescription('Consume MySQL replication events and execute listeners')
@@ -89,14 +89,14 @@ class ConsumePrimeEvents extends Command
         }
 
         if ($input->getOption('memory') !== null) {
-            $this->maxMemory = $this->convertToBytes($input->getOption('memory'));
+            $this->maxMemory = $this->convertToBytes((string) $input->getOption('memory'));
         }
     }
 
     private function runConsumer(EntityEventsConsumer $consumer): void
     {
         pcntl_async_signals(true);
-        pcntl_signal(SIGINT, function () use($consumer) {
+        pcntl_signal(SIGINT, function () use ($consumer) {
             $this->running = false;
         });
 

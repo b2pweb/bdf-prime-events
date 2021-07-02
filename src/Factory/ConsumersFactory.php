@@ -93,7 +93,10 @@ final class ConsumersFactory
         $listeners = $this->filterListenersForConnection($connection);
 
         if (empty($listeners)) {
-            throw new InvalidArgumentException('Cannot found any entity listeners for connection name "' . $connection . '"');
+            throw new InvalidArgumentException(sprintf(
+                'Cannot found any entity listeners for connection name "%s"',
+                $connection
+            ));
         }
 
 
@@ -124,7 +127,10 @@ final class ConsumersFactory
      */
     public function configure(string $connection, $config): void
     {
-        $this->config[$connection] = $config instanceof ConsumerConfiguration ? $config : new ConsumerConfiguration($config);
+        $this->config[$connection] = $config instanceof ConsumerConfiguration
+            ? $config
+            : new ConsumerConfiguration($config)
+        ;
     }
 
     /**
@@ -151,8 +157,14 @@ final class ConsumersFactory
         foreach ($this->listeners as $listener) {
             $repository = $this->prime->repository($listener->entityClass());
 
+            // @todo remove when psalm feature is merged on prime
+            /** @psalm-suppress DocblockTypeContradiction */
             if (!$repository) {
-                throw new LogicException(sprintf('The entity "%s" cannot be found for the listener "%s"', $listener->entityClass(), get_class($listener)));
+                throw new LogicException(sprintf(
+                    'The entity "%s" cannot be found for the listener "%s"',
+                    $listener->entityClass(),
+                    get_class($listener)
+                ));
             }
 
             if ($repository->metadata()->connection === $connection) {
