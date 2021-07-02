@@ -93,7 +93,7 @@ class ConsumePrimeEventsTest extends TestCase
     {
         $this->runInBackground(100, function () {
             for ($i = 0; $i < 5000; ++$i) {
-                (new MyTestEntity(['value' => bin2hex(random_bytes(128))]))->insert();
+                (new MyTestEntity(['value' => bin2hex(random_bytes(127))]))->insert();
             }
         });
 
