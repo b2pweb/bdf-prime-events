@@ -4,10 +4,10 @@ build:
     timezone: Europe/Paris
 
   nodes:
-    environment:
-      docker: true
-
     tests:
+      environment:
+        docker: true
+
       dependencies:
         before:
           - ./.github/run-mysql.sh
