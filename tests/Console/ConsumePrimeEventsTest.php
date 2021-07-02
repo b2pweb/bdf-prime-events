@@ -83,7 +83,7 @@ class ConsumePrimeEventsTest extends TestCase
         });
 
         $this->tester->execute(['connection' => 'test', '--limit' => 50]);
-        usleep(200000);
+        usleep(500000);
 
         $count = count(MyTestEntityListener::$inserted);
         $this->assertGreaterThan(5, $count);
