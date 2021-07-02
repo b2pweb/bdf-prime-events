@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        #php-versions: ['7.1'/*, '7.2', '7.3', '7.4']
-        php-versions: ['7.1']
+        php-versions: ['7.1'/*, '7.2', '7.3', '7.4']
     name: PHP ${{ matrix.php-versions }}
 
     steps:
@@ -34,24 +33,6 @@ jobs:
 
     - name: Install MySQL
       run: ./.github/run-mysql.sh
-#        docker pull mottox/mysql-replication;
-#        docker run --name master -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -e MYSQL_ROOT_HOST=% -e SERVER_ID=1 -d mottox/mysql-replication;
-#      uses: mirromutth/mysql-action@v1.1
-#      with:
-#        mysql root password: ''
-#        mysql user: 'test_events'
-#        mysql password: 'password'
-#
-#    - name: Configure databases and users
-#      run: >
-#        docker exec mysql mysql --protocol=tcp -e "create database test";
-#        docker exec mysql mysql --protocol=tcp -e "create user test_events IDENTIFIED BY 'password'";
-#        docker exec mysql mysql --protocol=tcp -e "grant all privileges on test.* to test_events";
-#        docker exec mysql mysql --protocol=tcp -e "grant replication slave, replication client on *.* to test_events";
-#        docker exec mysql mysql --protocol=tcp -e "create database other";
-#        docker exec mysql mysql --protocol=tcp -e "create user other_user IDENTIFIED BY 'other_pass'";
-#        docker exec mysql mysql --protocol=tcp -e "grant all privileges on other.* to other_user";
-#        docker exec mysql mysql --protocol=tcp -e "grant replication slave, replication client on *.* to other_user";
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict
