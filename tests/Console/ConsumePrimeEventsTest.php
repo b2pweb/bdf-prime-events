@@ -49,6 +49,10 @@ class ConsumePrimeEventsTest extends TestCase
 
     protected function tearDown(): void
     {
+        if ($this->pid !== null) {
+            @posix_kill($this->pid, SIGKILL);
+        }
+
         MyTestEntityListener::$inserted = MyTestEntityListener::$deleted = MyTestEntityListener::$updated = [];
         MyTestEntity::repository()->schema()->drop();
     }
@@ -119,7 +123,10 @@ class ConsumePrimeEventsTest extends TestCase
         }
 
         usleep($after * 1000);
-        $action();
+
+        try {
+            $action();
+        } catch (\Throwable $e) {}
         exit;
     }
 }

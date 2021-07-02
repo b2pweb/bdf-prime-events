@@ -99,7 +99,6 @@ final class ConsumersFactory
             ));
         }
 
-
         $config = $this->config[$connection] ?? new ConsumerConfiguration([]);
         $consumer = new EntityEventsConsumer(
             $this->prime,
