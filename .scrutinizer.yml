@@ -4,6 +4,9 @@ build:
     timezone: Europe/Paris
 
   nodes:
+    environment:
+      docker: true
+
     tests:
       dependencies:
         before:
