@@ -1,0 +1,17 @@
+build:
+  environment:
+    php: 7.2.24
+    timezone: Europe/Paris
+
+  nodes:
+    tests:
+      dependencies:
+        before:
+          - ./.github/run-mysql.sh
+
+      tests:
+        override:
+          - command: composer run tests-with-coverage
+            coverage:
+              file: coverage.xml
+              format: clover
