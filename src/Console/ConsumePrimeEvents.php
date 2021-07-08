@@ -5,12 +5,15 @@ namespace Bdf\PrimeEvents\Console;
 use Bdf\PrimeEvents\EntityEventsConsumer;
 use Bdf\PrimeEvents\Factory\ConsumersFactory;
 use Bdf\Util\Console\ByteConverterExtension;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use Throwable;
 use function memory_get_usage;
 use function pcntl_async_signals;
 use function pcntl_signal;
@@ -28,6 +31,11 @@ class ConsumePrimeEvents extends Command
      * @var ConsumersFactory
      */
     private $factory;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     /**
      * @var bool
@@ -49,12 +57,14 @@ class ConsumePrimeEvents extends Command
      * PrimeEventsConsumer constructor.
      *
      * @param ConsumersFactory $factory
+     * @param LoggerInterface|null $logger
      */
-    public function __construct(ConsumersFactory $factory)
+    public function __construct(ConsumersFactory $factory, ?LoggerInterface $logger = null)
     {
         parent::__construct();
 
         $this->factory = $factory;
+        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
@@ -101,7 +111,11 @@ class ConsumePrimeEvents extends Command
         });
 
         while ($this->isRunning()) {
-            $consumer->consume();
+            try {
+                $consumer->consume();
+            } catch (Throwable $e) {
+                $this->logger->error('[MySQL Event] Uncaught exception during consume : '.$e);
+            }
         }
 
         $consumer->stop();

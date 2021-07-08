@@ -7,6 +7,8 @@ use Bdf\Prime\Events;
 use Bdf\Prime\Mapper\Mapper;
 use Bdf\Prime\Platform\PlatformInterface;
 use Bdf\Prime\Repository\RepositoryInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Listener for database entities writes
@@ -23,6 +25,11 @@ final class EntityEventsListener
     private $repository;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @var Mapper
      */
     private $mapper;
@@ -34,13 +41,18 @@ final class EntityEventsListener
 
     /**
      * EntityEventsListener constructor.
+     *
      * @param RepositoryInterface $repository
+     * @param LoggerInterface|null $logger
+     *
+     * @throws \Bdf\Prime\Exception\PrimeException
      */
-    public function __construct(RepositoryInterface $repository)
+    public function __construct(RepositoryInterface $repository, ?LoggerInterface $logger = null)
     {
         $this->repository = $repository;
         $this->mapper = $repository->mapper();
         $this->platform = $repository->connection()->platform();
+        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
@@ -48,6 +60,7 @@ final class EntityEventsListener
      */
     public function onWrite(array $value): void
     {
+        $this->logger->info('[MySQL Event] write on '.$this->mapper->getEntityClass(), ['value' => $value]);
         $this->notify(Events::POST_INSERT, [$this->entity($value)]);
     }
 
@@ -57,6 +70,7 @@ final class EntityEventsListener
      */
     public function onUpdate(array $value): void
     {
+        $this->logger->info('[MySQL Event] update on '.$this->mapper->getEntityClass(), ['value' => $value]);
         $this->notify(Events::POST_UPDATE, [$this->entity($value['before']), $this->entity($value['after'])]);
     }
 
@@ -65,6 +79,7 @@ final class EntityEventsListener
      */
     public function onDelete(array $value): void
     {
+        $this->logger->info('[MySQL Event] delete on '.$this->mapper->getEntityClass(), ['value' => $value]);
         $this->notify(Events::POST_DELETE, [$this->entity($value)]);
     }
 

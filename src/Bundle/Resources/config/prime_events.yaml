@@ -3,10 +3,14 @@ services:
         class: Bdf\PrimeEvents\Factory\ConsumersFactory
         arguments:
             - '@prime'
+            - []
+            - []
+            - '@logger'
         public: true
 
     Bdf\PrimeEvents\Console\ConsumePrimeEvents:
         class: Bdf\PrimeEvents\Console\ConsumePrimeEvents
         arguments:
             - '@Bdf\PrimeEvents\Factory\ConsumersFactory'
+            - '@logger'
         tags: ['console.command']

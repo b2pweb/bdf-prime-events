@@ -15,6 +15,8 @@ use MySQLReplication\Event\DTO\UpdateRowsDTO;
 use MySQLReplication\Event\DTO\WriteRowsDTO;
 use MySQLReplication\Event\EventSubscribers;
 use MySQLReplication\MySQLReplicationFactory;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Consume MySQL replication events for watch entities writes
@@ -56,6 +58,11 @@ final class EntityEventsConsumer extends EventSubscribers
     private $configurator;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @var array<class-string, EntityEventsListener>
      */
     private $entityListenersByEntityClass = [];
@@ -88,11 +95,12 @@ final class EntityEventsConsumer extends EventSubscribers
      * @param string|null $logPositionFile File which store the last event log position
      * @param callable|null $configurator Configurator callback
      */
-    public function __construct(ServiceLocator $prime, ?string $logPositionFile = null, ?callable $configurator = null)
+    public function __construct(ServiceLocator $prime, ?string $logPositionFile = null, ?callable $configurator = null, ?LoggerInterface $logger = null)
     {
         $this->prime = $prime;
         $this->configurator = $configurator;
         $this->logPositionFile = $logPositionFile;
+        $this->logger = $logger ?? new NullLogger();
 
         $this->loadLastPosition();
     }
@@ -120,7 +128,7 @@ final class EntityEventsConsumer extends EventSubscribers
         }
 
         $repository = $this->prime->repository($entityClass);
-        $listener = new EntityEventsListener($repository);
+        $listener = new EntityEventsListener($repository, $this->logger);
 
         return $this->entityListenersByTable[$repository->metadata()->table()]
             = $this->entityListenersByEntityClass[$entityClass]
@@ -178,6 +186,7 @@ final class EntityEventsConsumer extends EventSubscribers
      */
     protected function allEvents(EventDTO $event): void
     {
+        $this->logger->debug((string) $event);
         $this->binLogCurrent = $event->getEventInfo()->getBinLogCurrent();
     }
 

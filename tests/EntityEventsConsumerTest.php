@@ -8,6 +8,9 @@ use Bdf\Prime\ServiceLocator;
 use Bdf\PrimeEvents\EntityEventsConsumer;
 use MySQLReplication\BinLog\BinLogCurrent;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
+use Psr\Log\Test\TestLogger;
 
 /**
  * Class EntityEventsConsumerTest
@@ -48,7 +51,9 @@ class EntityEventsConsumerTest extends TestCase
         $deleted = [];
         $updated = [];
 
-        $consumer = new EntityEventsConsumer($this->prime);
+        $logger = new TestLogger();
+
+        $consumer = new EntityEventsConsumer($this->prime, null, null, $logger);
         $consumer
             ->forEntity(Foo::class)
             ->inserted(function ($entity) use(&$inserted) {
@@ -72,6 +77,7 @@ class EntityEventsConsumerTest extends TestCase
         }
 
         $this->assertEquals(new Foo(['id' => 1, 'foo' => 'bar']), $inserted[0]);
+        $this->assertTrue($logger->hasRecordThatContains('[MySQL Event] write on '.Foo::class, LogLevel::INFO));
 
         $entity->foo = 'oof';
         $entity->update();
@@ -80,6 +86,7 @@ class EntityEventsConsumerTest extends TestCase
             $consumer->consume();
         }
 
+        $this->assertTrue($logger->hasRecordThatContains('[MySQL Event] update on '.Foo::class, LogLevel::INFO));
         $this->assertEquals([new Foo(['id' => 1, 'foo' => 'bar']), new Foo(['id' => 1, 'foo' => 'oof'])], $updated[0]);
 
         $entity->delete();
@@ -87,6 +94,7 @@ class EntityEventsConsumerTest extends TestCase
             $consumer->consume();
         }
 
+        $this->assertTrue($logger->hasRecordThatContains('[MySQL Event] delete on '.Foo::class, LogLevel::INFO));
         $this->assertEquals(new Foo(['id' => 1, 'foo' => 'oof']), $deleted[0]);
         $consumer->stop();
     }

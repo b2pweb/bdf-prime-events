@@ -6,6 +6,8 @@ use Bdf\Prime\ServiceLocator;
 use Bdf\PrimeEvents\EntityEventsConsumer;
 use InvalidArgumentException;
 use LogicException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Create and configure @see EntityEventsConsumer
@@ -55,17 +57,24 @@ final class ConsumersFactory
     private $listeners;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * ConsumersFactory constructor.
      *
      * @param ServiceLocator $prime
      * @param array<string, ConsumerConfiguration> $config Consumers configurations indexed by connection name
      * @param EntityEventsListenerInterface[] $listeners
+     * @param LoggerInterface|null $logger
      */
-    public function __construct(ServiceLocator $prime, array $config = [], array $listeners = [])
+    public function __construct(ServiceLocator $prime, array $config = [], array $listeners = [], ?LoggerInterface $logger = null)
     {
         $this->prime = $prime;
         $this->config = $config;
         $this->listeners = $listeners;
+        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
@@ -103,7 +112,8 @@ final class ConsumersFactory
         $consumer = new EntityEventsConsumer(
             $this->prime,
             $config->logPositionFile(),
-            [$config, 'configure']
+            [$config, 'configure'],
+            $this->logger
         );
 
         foreach ($listeners as $listener) {
