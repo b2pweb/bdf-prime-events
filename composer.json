@@ -22,8 +22,8 @@
     },
     "require": {
         "php": ">=7.1",
-        "b2pweb/bdf-prime": "~1.1",
-        "krowinski/php-mysql-replication": "~6.2"
+        "b2pweb/bdf-prime": "~1.1|~2.0",
+        "krowinski/php-mysql-replication": "~6.2|~7.0"
     },
     "require-dev": {
         "phpunit/phpunit": "~7.0",
