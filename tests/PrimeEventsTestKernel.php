@@ -29,7 +29,7 @@ class PrimeEventsTestKernel extends Kernel
         }
     }
 
-    public function registerBundles()
+    public function registerBundles(): iterable
     {
         return [
             new \Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
