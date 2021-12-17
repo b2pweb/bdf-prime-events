@@ -242,7 +242,7 @@ class FooMapper extends Mapper
     /**
      * @return array|null
      */
-    public function schema()
+    public function schema(): array
     {
         return [
             'connection' => 'test',
@@ -250,7 +250,7 @@ class FooMapper extends Mapper
         ];
     }
 
-    public function buildFields($builder)
+    public function buildFields($builder): void
     {
         $builder
             ->integer('id')->autoincrement()

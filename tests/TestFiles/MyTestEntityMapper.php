@@ -6,7 +6,7 @@ use Bdf\Prime\Mapper\Mapper;
 
 class MyTestEntityMapper extends Mapper
 {
-    public function schema()
+    public function schema(): array
     {
         return [
             'connection' => 'test',
@@ -14,7 +14,7 @@ class MyTestEntityMapper extends Mapper
         ];
     }
 
-    public function buildFields($builder)
+    public function buildFields($builder): void
     {
         $builder
             ->integer('id')->autoincrement()

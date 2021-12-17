@@ -5,6 +5,7 @@ namespace Bdf\PrimeEvents;
 use Bdf\Prime\ServiceLocator;
 use Bdf\PrimeEvents\Factory\ConsumersFactory;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Platforms\MySQLPlatform;
 use InvalidArgumentException;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\Config\Config;
@@ -244,11 +245,14 @@ final class EntityEventsConsumer extends EventSubscribers
             $repository = $this->prime->repository($entityClass);
             $connection = $repository->connection();
 
-            $databases[$repository->connection()->getDatabase()] = $connection->getDatabase();
+            if ($dbName = $connection->getDatabase()) {
+                $databases[$dbName] = $dbName;
+            }
+
             $tables[] = $repository->metadata()->table();
 
             if ($connection instanceof Connection) {
-                if ($connection->getDatabasePlatform()->getName() !== 'mysql') {
+                if (!$connection->getDatabasePlatform() instanceof MySQLPlatform) {
                     throw new InvalidArgumentException(sprintf(
                         'The connection "%s" must be a MySQL connection',
                         $connection->getName()
