@@ -21,7 +21,7 @@
         }
     },
     "require": {
-        "php": ">=7.1",
+        "php": "~7.1 | ~8.0.0",
         "b2pweb/bdf-prime": "~1.1|~2.0",
         "krowinski/php-mysql-replication": "~6.2|~7.0"
     },
@@ -41,5 +41,10 @@
         "tests-with-coverage": "phpunit --coverage-clover coverage.xml",
         "psalm": "psalm --shepherd",
         "phpcs": "phpcs --standard=psr12 --tab-width=4 src/"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
     }
 }
