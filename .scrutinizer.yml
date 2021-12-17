@@ -13,7 +13,7 @@ build:
 
       dependencies:
         before:
-          - sudo service mysql stop
+#          - sudo service mysql stop
           - ./.github/run-mysql.sh
 
       tests:
