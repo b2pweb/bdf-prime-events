@@ -8,12 +8,8 @@ build:
       environment:
         docker: true
 
-      services:
-        mysql: 5.7
-
       dependencies:
         before:
-#          - sudo service mysql stop
           - ./.github/run-mysql.sh
 
       tests:
