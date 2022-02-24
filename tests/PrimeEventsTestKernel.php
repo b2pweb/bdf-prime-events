@@ -34,7 +34,7 @@ class PrimeEventsTestKernel extends Kernel
         return [
             new \Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
             new \Bdf\PrimeBundle\PrimeBundle(),
-            new \Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
+            //new \Doctrine\Bundle\DoctrineBundle\DoctrineBundle(),
             new PrimeEventsBundle(),
         ];
     }
