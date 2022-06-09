@@ -105,10 +105,13 @@ class ConsumePrimeEvents extends Command
 
     private function runConsumer(EntityEventsConsumer $consumer): void
     {
-        pcntl_async_signals(true);
-        pcntl_signal(SIGINT, function () use ($consumer) {
+        $stop = function () use ($consumer) {
             $this->running = false;
-        });
+        };
+
+        pcntl_async_signals(true);
+        pcntl_signal(SIGINT, $stop);
+        pcntl_signal(SIGTERM, $stop);
 
         while ($this->isRunning()) {
             try {
