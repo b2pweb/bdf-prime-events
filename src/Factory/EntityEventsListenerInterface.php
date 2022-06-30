@@ -33,9 +33,9 @@ interface EntityEventsListenerInterface
     public function onUpdate($oldEntity, $newEntity): void;
 
     /**
-     * The entity has been delete
+     * The entity has been deleted
      *
-     * @param E $entity The delete entity
+     * @param E $entity The deleted entity
      */
     public function onDelete($entity): void;
 }

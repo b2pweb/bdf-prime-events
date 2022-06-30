@@ -2,25 +2,22 @@
 
 namespace Bdf\PrimeEvents;
 
-use Bdf\Event\EventNotifier;
-use Bdf\Prime\Events;
 use Bdf\Prime\Mapper\Mapper;
 use Bdf\Prime\Platform\PlatformInterface;
 use Bdf\Prime\Repository\RepositoryInterface;
+use Exception;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
  * Listener for database entities writes
  *
- * @todo set entity template when feature psalm is merged
+ * @template E as object
  */
 final class EntityEventsListener
 {
-    use EventNotifier;
-
     /**
-     * @var RepositoryInterface
+     * @var RepositoryInterface<E>
      */
     private $repository;
 
@@ -30,7 +27,7 @@ final class EntityEventsListener
     private $logger;
 
     /**
-     * @var Mapper
+     * @var Mapper<E>
      */
     private $mapper;
 
@@ -40,9 +37,24 @@ final class EntityEventsListener
     private $platform;
 
     /**
+     * @var array<callable(E):void>
+     */
+    private $insertListeners = [];
+
+    /**
+     * @var array<callable(E, E):void>
+     */
+    private $updateListeners = [];
+
+    /**
+     * @var array<callable(E):void>
+     */
+    private $deleteListeners = [];
+
+    /**
      * EntityEventsListener constructor.
      *
-     * @param RepositoryInterface $repository
+     * @param RepositoryInterface<E> $repository
      * @param LoggerInterface|null $logger
      *
      * @throws \Bdf\Prime\Exception\PrimeException
@@ -60,8 +72,8 @@ final class EntityEventsListener
      */
     public function onWrite(array $value): void
     {
-        $this->logger->info('[MySQL Event] write on '.$this->mapper->getEntityClass(), ['value' => $value]);
-        $this->notify(Events::POST_INSERT, [$this->entity($value)]);
+        $this->logger->info('[MySQL Event] write on ' . $this->mapper->getEntityClass(), ['value' => $value]);
+        $this->notify($this->insertListeners, $this->entity($value));
     }
 
     /**
@@ -70,8 +82,8 @@ final class EntityEventsListener
      */
     public function onUpdate(array $value): void
     {
-        $this->logger->info('[MySQL Event] update on '.$this->mapper->getEntityClass(), ['value' => $value]);
-        $this->notify(Events::POST_UPDATE, [$this->entity($value['before']), $this->entity($value['after'])]);
+        $this->logger->info('[MySQL Event] update on ' . $this->mapper->getEntityClass(), ['value' => $value]);
+        $this->notify($this->updateListeners, $this->entity($value['before']), $this->entity($value['after']));
     }
 
     /**
@@ -79,20 +91,20 @@ final class EntityEventsListener
      */
     public function onDelete(array $value): void
     {
-        $this->logger->info('[MySQL Event] delete on '.$this->mapper->getEntityClass(), ['value' => $value]);
-        $this->notify(Events::POST_DELETE, [$this->entity($value)]);
+        $this->logger->info('[MySQL Event] delete on ' . $this->mapper->getEntityClass(), ['value' => $value]);
+        $this->notify($this->deleteListeners, $this->entity($value));
     }
 
     /**
      * Register post insert event
      *
-     * @param callable $listener
+     * @param callable(E):void $listener
      *
      * @return $this
      */
     public function inserted(callable $listener): EntityEventsListener
     {
-        $this->listen(Events::POST_INSERT, $listener);
+        $this->insertListeners[] = $listener;
 
         return $this;
     }
@@ -100,13 +112,13 @@ final class EntityEventsListener
     /**
      * Register post update event
      *
-     * @param callable $listener
+     * @param callable(E, E):void $listener
      *
      * @return $this
      */
     public function updated(callable $listener): EntityEventsListener
     {
-        $this->listen(Events::POST_UPDATE, $listener);
+        $this->updateListeners[] = $listener;
 
         return $this;
     }
@@ -114,13 +126,13 @@ final class EntityEventsListener
     /**
      * Register post delete event
      *
-     * @param callable $listener
+     * @param callable(E):void $listener
      *
      * @return $this
      */
     public function deleted(callable $listener): EntityEventsListener
     {
-        $this->listen(Events::POST_DELETE, $listener);
+        $this->deleteListeners[] = $listener;
 
         return $this;
     }
@@ -129,10 +141,44 @@ final class EntityEventsListener
      * Convert event data to entity
      *
      * @param array $value
-     * @return object
+     * @return E
      */
     private function entity(array $value)
     {
         return $this->mapper->prepareFromRepository($value, $this->platform);
+    }
+
+    /**
+     * @param array<callable> $listeners
+     * @param mixed ...$args
+     * @return void
+     */
+    private function notify(array $listeners, ...$args): void
+    {
+        foreach ($listeners as $listener) {
+            try {
+                $listener(...$args);
+            } catch (Exception $e) {
+                if (is_object($listener)) {
+                    $listenerName = get_class($listener);
+                } elseif (is_array($listener)) {
+                    $listenerName = get_class($listener[0]);
+                } elseif (is_string($listener)) {
+                    $listenerName = $listener;
+                } else {
+                    $listenerName = 'anonymous';
+                }
+
+                $this->logger->error(
+                    sprintf(
+                        'Error during the execution of listener "%s" for entity "%s" : %s',
+                        $listenerName,
+                        $this->repository->entityName(),
+                        $e->getMessage()
+                    ),
+                    ['exception' => $e]
+                );
+            }
+        }
     }
 }

@@ -12,8 +12,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-
 use Throwable;
+
 use function memory_get_usage;
 use function pcntl_async_signals;
 use function pcntl_signal;
@@ -117,7 +117,7 @@ class ConsumePrimeEvents extends Command
             try {
                 $consumer->consume();
             } catch (Throwable $e) {
-                $this->logger->error('[MySQL Event] Uncaught exception during consume : '.$e);
+                $this->logger->error('[MySQL Event] Uncaught exception during consume : ' . $e);
             }
         }
 

@@ -117,12 +117,7 @@ final class ConsumersFactory
         );
 
         foreach ($listeners as $listener) {
-            $consumer
-                ->forEntity($listener->entityClass())
-                ->inserted([$listener, 'onInsert'])
-                ->updated([$listener, 'onUpdate'])
-                ->deleted([$listener, 'onDelete'])
-            ;
+            $this->registerListener($consumer, $listener);
         }
 
         return $consumer;
@@ -182,5 +177,22 @@ final class ConsumersFactory
         }
 
         return $listeners;
+    }
+
+    /**
+     * @param EntityEventsConsumer $consumer
+     * @param EntityEventsListenerInterface<E> $listener
+     * @return void
+     * @template E as object
+     * @psalm-suppress InvalidArgument
+     */
+    private function registerListener(EntityEventsConsumer $consumer, EntityEventsListenerInterface $listener): void
+    {
+        $consumer
+            ->forEntity($listener->entityClass())
+            ->inserted([$listener, 'onInsert'])
+            ->updated([$listener, 'onUpdate'])
+            ->deleted([$listener, 'onDelete'])
+        ;
     }
 }

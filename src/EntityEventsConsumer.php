@@ -65,6 +65,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
     /**
      * @var array<class-string, EntityEventsListener>
+     * @psalm-var class-string-map<E, EntityEventsListener<E>>
      */
     private $entityListenersByEntityClass = [];
 
@@ -118,9 +119,10 @@ final class EntityEventsConsumer extends EventSubscribers
      * ;
      * </code>
      *
-     * @param class-string $entityClass The entity class name
+     * @param class-string<E> $entityClass The entity class name
      *
-     * @return EntityEventsListener The listener instance
+     * @return EntityEventsListener<E> The listener instance
+     * @template E as object
      */
     public function forEntity(string $entityClass): EntityEventsListener
     {

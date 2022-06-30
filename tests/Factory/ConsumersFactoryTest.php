@@ -6,6 +6,7 @@ use Bdf\Prime\Events;
 use Bdf\Prime\Prime;
 use Bdf\Prime\ServiceLocator;
 use Bdf\PrimeEvents\EntityEventsConsumer;
+use Bdf\PrimeEvents\EntityEventsListener;
 use Bdf\PrimeEvents\Factory\ConsumersFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;
@@ -125,12 +126,15 @@ class ConsumersFactoryTest extends TestCase
         $factory->register($myListener = new MyTestEntityListener());
         $factory->register($otherListener = new OtherEntityListener());
 
+        $insertListener = new \ReflectionProperty(EntityEventsListener::class, 'insertListeners');
+        $insertListener->setAccessible(true);
+
         $consumer1 = $factory->forConnection('test');
-        $this->assertSame($myListener, $consumer1->forEntity(MyTestEntity::class)->listeners(Events::POST_INSERT)[0][0]);
-        $this->assertEmpty($consumer1->forEntity(OtherEntity::class)->listeners(Events::POST_INSERT));
+        $this->assertSame($myListener, $insertListener->getValue($consumer1->forEntity(MyTestEntity::class))[0][0]);
+        $this->assertEmpty($insertListener->getValue($consumer1->forEntity(OtherEntity::class)));
 
         $consumer2 = $factory->forConnection('other');
-        $this->assertEmpty($consumer2->forEntity(MyTestEntity::class)->listeners(Events::POST_INSERT));
-        $this->assertSame($otherListener, $consumer2->forEntity(OtherEntity::class)->listeners(Events::POST_INSERT)[0][0]);
+        $this->assertEmpty($insertListener->getValue($consumer2->forEntity(MyTestEntity::class)));
+        $this->assertSame($otherListener, $insertListener->getValue($consumer2->forEntity(OtherEntity::class))[0][0]);
     }
 }

@@ -40,11 +40,11 @@
         "tests": "phpunit",
         "tests-with-coverage": "phpunit --coverage-clover coverage.xml",
         "psalm": "psalm --shepherd",
-        "phpcs": "phpcs --standard=psr12 --tab-width=4 src/"
+        "phpcs": "phpcs --standard=psr12 --tab-width=4 -n src/"
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "1.0.x-dev"
+            "dev-master": "1.x-dev"
         }
     }
 }

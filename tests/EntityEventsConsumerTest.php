@@ -224,6 +224,41 @@ class EntityEventsConsumerTest extends TestCase
         $this->assertEquals([$e1, $e2], $inserted);
         $consumer->stop();
     }
+
+    /**
+     *
+     */
+    public function test_consume_with_exception_should_not_stop_other_listeners()
+    {
+        $inserted = [];
+
+        $file = tempnam('/tmp', 'consumer_pos');
+        $logger = $this->createMock(LoggerInterface::class);
+        $consumer = new EntityEventsConsumer($this->prime, $file, null, $logger);
+        $consumer
+            ->forEntity(Foo::class)
+            ->inserted(function ($entity) {
+                throw new \Exception('my error');
+            })
+            ->inserted(function ($entity) use(&$inserted) {
+                $inserted[] = $entity;
+            })
+        ;
+
+        $logger->expects($this->once())->method('error')
+            ->with('Error during the execution of listener "Closure" for entity "Tests\PrimeEvents\Foo" : my error', ['exception' => new \Exception('my error')])
+        ;
+
+        $consumer->start();
+        $e1 = new Foo(['foo' => 'bar1']);
+        $e1->save();
+
+        while (count($inserted) !== 1) {
+            $consumer->consume();
+        }
+
+        $consumer->stop();
+    }
 }
 
 class Foo extends Model
