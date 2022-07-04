@@ -10,7 +10,7 @@ build:
 
       dependencies:
         before:
-          - sleep 15
+          - sleep 25
           - sudo service mysql stop
           - ./.github/run-mysql.sh
 
