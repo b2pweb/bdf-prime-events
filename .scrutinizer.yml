@@ -10,8 +10,8 @@ build:
 
       dependencies:
         before:
-          - sleep 25
-          - sudo service mysql stop
+          - sudo service mysql start || true
+          - sudo service mysql stop || true
           - ./.github/run-mysql.sh
 
       tests:
