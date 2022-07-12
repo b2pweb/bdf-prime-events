@@ -7,6 +7,7 @@ use Bdf\PrimeEvents\Factory\ConsumersFactory;
 use Bdf\Util\Console\ByteConverterExtension;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,6 +22,7 @@ use function pcntl_signal;
 /**
  * Command for consume MySQL replication events
  */
+#[AsCommand('prime:events:consume', 'Consume MySQL replication events and execute listeners')]
 class ConsumePrimeEvents extends Command
 {
     use ByteConverterExtension;
