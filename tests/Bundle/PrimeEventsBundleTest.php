@@ -7,6 +7,7 @@ use Bdf\PrimeEvents\Factory\ConsumerConfiguration;
 use Bdf\PrimeEvents\Factory\ConsumersFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Command\LazyCommand;
 use Symfony\Component\HttpKernel\Kernel;
 use Tests\PrimeEvents\PrimeEventsTestKernel;
 use Tests\PrimeEvents\TestFiles\MyTestEntityListener;
@@ -73,6 +74,11 @@ class PrimeEventsBundleTest extends TestCase
 
         $console = new Application($kernel);
 
-        $this->assertInstanceOf(ConsumePrimeEvents::class, $console->get('prime:events:consume'));
+        if (PHP_MAJOR_VERSION < 8) {
+            $this->assertInstanceOf(ConsumePrimeEvents::class, $console->get('prime:events:consume'));
+        } else {
+            $this->assertInstanceOf(LazyCommand::class, $console->get('prime:events:consume'));
+            $this->assertInstanceOf(ConsumePrimeEvents::class, $console->get('prime:events:consume')->getCommand());
+        }
     }
 }
