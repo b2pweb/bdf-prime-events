@@ -102,6 +102,54 @@ class EntityEventsConsumerTest extends TestCase
     /**
      *
      */
+    public function test_consume_with_invalid_binlog_position_should_retry()
+    {
+        $inserted = [];
+        $deleted = [];
+        $updated = [];
+
+        $logger = new TestLogger();
+
+        $logPosFile = tempnam(sys_get_temp_dir(), 'events_log_');
+        $logPos = new BinLogCurrent();
+        $logPos->setBinFileName('fakefile');
+        $logPos->setBinLogPosition(404);
+
+        file_put_contents($logPosFile, serialize($logPos));
+
+        $consumer = new EntityEventsConsumer($this->prime, $logPosFile, null, $logger);
+        $consumer
+            ->forEntity(Foo::class)
+            ->inserted(function ($entity) use(&$inserted) {
+                $inserted[] = $entity;
+            })
+            ->deleted(function ($entity) use(&$deleted) {
+                $deleted[] = $entity;
+            })
+            ->updated(function ($before, $after) use(&$updated) {
+                $updated[] = [$before, $after];
+            })
+        ;
+
+        $consumer->start();
+        $this->assertTrue($logger->hasRecordThatContains('[MySQL Event] Invalid binlog position : ', LogLevel::WARNING));
+
+        $entity = new Foo(['foo' => 'bar']);
+        $entity->save();
+
+        while (empty($inserted)) {
+            $consumer->consume();
+        }
+
+        $this->assertEquals(new Foo(['id' => 1, 'foo' => 'bar']), $inserted[0]);
+        $this->assertTrue($logger->hasRecordThatContains('[MySQL Event] write on '.Foo::class, LogLevel::INFO));
+
+        $consumer->stop();
+    }
+
+    /**
+     *
+     */
     public function test_multiple_insert()
     {
         $inserted = [];

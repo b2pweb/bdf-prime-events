@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
 use InvalidArgumentException;
 use MySQLReplication\BinLog\BinLogCurrent;
+use MySQLReplication\BinLog\BinLogException;
 use MySQLReplication\Config\Config;
 use MySQLReplication\Config\ConfigBuilder;
 use MySQLReplication\Event\DTO\DeleteRowsDTO;
@@ -204,7 +205,16 @@ final class EntityEventsConsumer extends EventSubscribers
             return;
         }
 
-        $this->binLogStream = new MySQLReplicationFactory($this->config());
+        try {
+            $this->binLogStream = new MySQLReplicationFactory($this->config());
+        } catch (BinLogException $e) {
+            $this->logger->warning('[MySQL Event] Invalid binlog position : ' . $e->getMessage().'. Try to reset position...');
+
+            // Stop current stream and log position for recreate a fresh stream pointing to new events
+            $this->binLogCurrent = null;
+            $this->binLogStream = new MySQLReplicationFactory($this->config());
+        }
+
         $this->binLogStream->registerSubscriber($this);
     }
 
