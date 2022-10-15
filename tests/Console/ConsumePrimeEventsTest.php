@@ -66,7 +66,7 @@ class ConsumePrimeEventsTest extends TestCase
             (new MyTestEntity(['id' => 1, 'value' => 'Foo']))->insert();
         });
 
-        $this->tester->execute(['connection' => 'test', '--limit' => 5]);
+        $this->tester->execute(['connection' => 'test', '--max' => 5]);
 
         $this->assertEquals(new MyTestEntity(['id' => 1, 'value' => 'Foo']), MyTestEntityListener::$inserted[0]);
     }
@@ -82,7 +82,7 @@ class ConsumePrimeEventsTest extends TestCase
             }
         });
 
-        $this->tester->execute(['connection' => 'test', '--limit' => 50]);
+        $this->tester->execute(['connection' => 'test', '--max' => 50]);
         sleep(5);
 
         $count = count(MyTestEntityListener::$inserted);

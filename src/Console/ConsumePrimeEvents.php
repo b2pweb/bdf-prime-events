@@ -52,7 +52,7 @@ class ConsumePrimeEvents extends Command
     /**
      * @var int|null
      */
-    private $limit = null;
+    private $max = null;
 
 
     /**
@@ -76,8 +76,8 @@ class ConsumePrimeEvents extends Command
     {
         $this
             ->setDescription('Consume MySQL replication events and execute listeners')
-            ->addOption('limit', 'c', InputOption::VALUE_OPTIONAL, 'Maximum read events count')
-            ->addOption('memory', 'm', InputOption::VALUE_OPTIONAL, 'Memory limit')
+            ->addOption('max', null, InputOption::VALUE_OPTIONAL, 'Maximum read events count')
+            ->addOption('memory', null, InputOption::VALUE_OPTIONAL, 'Memory limit')
             ->addArgument('connection', InputArgument::REQUIRED, 'The connection name to listen')
         ;
     }
@@ -96,8 +96,8 @@ class ConsumePrimeEvents extends Command
 
     private function parseOptions(InputInterface $input): void
     {
-        if ($input->getOption('limit') !== null) {
-            $this->limit = (int) $input->getOption('limit');
+        if ($input->getOption('max') !== null) {
+            $this->max = (int) $input->getOption('max');
         }
 
         if ($input->getOption('memory') !== null) {
@@ -128,7 +128,7 @@ class ConsumePrimeEvents extends Command
 
     private function isRunning(): bool
     {
-        if ($this->limit !== null && $this->limit-- <= 0) {
+        if ($this->max !== null && $this->max-- <= 0) {
             return false;
         }
 
