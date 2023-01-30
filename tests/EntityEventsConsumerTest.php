@@ -2,6 +2,8 @@
 
 namespace Tests\PrimeEvents;
 
+require_once __DIR__ . '/TestLogger.php';
+
 use Bdf\Prime\Entity\Model;
 use Bdf\Prime\Mapper\Mapper;
 use Bdf\Prime\ServiceLocator;
