@@ -34,7 +34,8 @@
         "b2pweb/bdf-prime-bundle": "~1.0",
         "vimeo/psalm": "~4.8",
         "psalm/plugin-symfony": "dev-master",
-        "squizlabs/php_codesniffer": "~3.0"
+        "squizlabs/php_codesniffer": "~3.0",
+        "psr/log": "~1.1"
     },
     "scripts": {
         "tests": "phpunit",
