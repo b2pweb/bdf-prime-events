@@ -1,0 +1,22 @@
+build:
+  environment:
+    php: 7.4
+    timezone: Europe/Paris
+
+  nodes:
+    tests:
+      environment:
+        docker: true
+
+      dependencies:
+        before:
+          - sudo service mysql start || true
+          - sudo service mysql stop || true
+          - ./.github/run-mysql.sh
+
+      tests:
+        override:
+          - command: composer run tests-with-coverage
+            coverage:
+              file: coverage.xml
+              format: clover
