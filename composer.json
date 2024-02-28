@@ -21,9 +21,10 @@
         }
     },
     "require": {
-        "php": "~7.4 | ~8.0.0 | ~8.1.0 | ~8.2.0",
+        "php": "~7.4 | ~8.0.0 | ~8.1.0 | ~8.2.0 | ~8.3.0",
         "b2pweb/bdf-prime": "~1.1|~2.0",
-        "moln/php-mysql-replication": "~1.2"
+        "moln/php-mysql-replication": "~1.2",
+        "psr/simple-cache": "^1.0@stable | ^3.0@stable"
     },
     "require-dev": {
         "ext-pcntl": "*",
