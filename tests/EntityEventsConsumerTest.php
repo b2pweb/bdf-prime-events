@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Psr\Log\Test\TestLogger;
+use Tests\PrimeEvents\TestFiles\Foo;
 
 /**
  * Class EntityEventsConsumerTest
@@ -296,7 +297,7 @@ class EntityEventsConsumerTest extends TestCase
         ;
 
         $logger->expects($this->once())->method('error')
-            ->with('Error during the execution of listener "Closure" for entity "Tests\PrimeEvents\Foo" : my error', ['exception' => new \Exception('my error')])
+            ->with('Error during the execution of listener "Closure" for entity "Tests\PrimeEvents\TestFiles\Foo" : my error', ['exception' => new \Exception('my error')])
         ;
 
         $consumer->start();
@@ -308,38 +309,5 @@ class EntityEventsConsumerTest extends TestCase
         }
 
         $consumer->stop();
-    }
-}
-
-class Foo extends Model
-{
-    public $id;
-    public $foo;
-
-    public function __construct(array $data = [])
-    {
-        $this->import($data);
-    }
-}
-
-class FooMapper extends Mapper
-{
-    /**
-     * @return array|null
-     */
-    public function schema(): array
-    {
-        return [
-            'connection' => 'test',
-            'table' => 'foo'
-        ];
-    }
-
-    public function buildFields($builder): void
-    {
-        $builder
-            ->integer('id')->autoincrement()
-            ->string('foo')
-        ;
     }
 }
