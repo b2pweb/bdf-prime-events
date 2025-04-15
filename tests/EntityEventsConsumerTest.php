@@ -9,6 +9,9 @@ use Bdf\Prime\Mapper\Mapper;
 use Bdf\Prime\ServiceLocator;
 use Bdf\PrimeEvents\EntityEventsConsumer;
 use MySQLReplication\BinLog\BinLogCurrent;
+use MySQLReplication\Event\DTO\DeleteRowsDTO;
+use MySQLReplication\Event\DTO\UpdateRowsDTO;
+use MySQLReplication\Event\DTO\WriteRowsDTO;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -59,13 +62,13 @@ class EntityEventsConsumerTest extends TestCase
         $consumer = new EntityEventsConsumer($this->prime, null, null, $logger);
         $consumer
             ->forEntity(Foo::class)
-            ->inserted(function ($entity) use(&$inserted) {
+            ->inserted(function ($entity, WriteRowsDTO $event) use(&$inserted) {
                 $inserted[] = $entity;
             })
-            ->deleted(function ($entity) use(&$deleted) {
+            ->deleted(function ($entity, DeleteRowsDTO $event) use(&$deleted) {
                 $deleted[] = $entity;
             })
-            ->updated(function ($before, $after) use(&$updated) {
+            ->updated(function ($before, $after, UpdateRowsDTO $event) use(&$updated) {
                 $updated[] = [$before, $after];
             })
         ;
@@ -123,13 +126,13 @@ class EntityEventsConsumerTest extends TestCase
         $consumer = new EntityEventsConsumer($this->prime, $logPosFile, null, $logger);
         $consumer
             ->forEntity(Foo::class)
-            ->inserted(function ($entity) use(&$inserted) {
+            ->inserted(function ($entity, WriteRowsDTO $event) use(&$inserted) {
                 $inserted[] = $entity;
             })
-            ->deleted(function ($entity) use(&$deleted) {
+            ->deleted(function ($entity, DeleteRowsDTO $event) use(&$deleted) {
                 $deleted[] = $entity;
             })
-            ->updated(function ($before, $after) use(&$updated) {
+            ->updated(function ($before, $after, UpdateRowsDTO $event) use(&$updated) {
                 $updated[] = [$before, $after];
             })
         ;
@@ -160,7 +163,7 @@ class EntityEventsConsumerTest extends TestCase
         $consumer = new EntityEventsConsumer($this->prime);
         $consumer
             ->forEntity(Foo::class)
-            ->inserted(function ($entity) use(&$inserted) {
+            ->inserted(function ($entity, WriteRowsDTO $event) use(&$inserted) {
                 $inserted[] = $entity;
             })
         ;
@@ -195,7 +198,7 @@ class EntityEventsConsumerTest extends TestCase
         $consumer = new EntityEventsConsumer($this->prime);
         $consumer
             ->forEntity(Foo::class)
-            ->updated(function ($before, $after) use(&$updated) {
+            ->updated(function ($before, $after, UpdateRowsDTO $event) use(&$updated) {
                 $updated[] = [$before, $after];
             })
         ;
@@ -238,7 +241,7 @@ class EntityEventsConsumerTest extends TestCase
         $consumer = new EntityEventsConsumer($this->prime, $file);
         $consumer
             ->forEntity(Foo::class)
-            ->inserted(function ($entity) use(&$inserted) {
+            ->inserted(function ($entity, WriteRowsDTO $event) use(&$inserted) {
                 $inserted[] = $entity;
             })
         ;
@@ -262,7 +265,7 @@ class EntityEventsConsumerTest extends TestCase
         $consumer = new EntityEventsConsumer($this->prime, $file);
         $consumer
             ->forEntity(Foo::class)
-            ->inserted(function ($entity) use(&$inserted) {
+            ->inserted(function ($entity, WriteRowsDTO $event) use(&$inserted) {
                 $inserted[] = $entity;
             })
         ;
@@ -288,10 +291,10 @@ class EntityEventsConsumerTest extends TestCase
         $consumer = new EntityEventsConsumer($this->prime, $file, null, $logger);
         $consumer
             ->forEntity(Foo::class)
-            ->inserted(function ($entity) {
+            ->inserted(function ($entity, WriteRowsDTO $event) {
                 throw new \Exception('my error');
             })
-            ->inserted(function ($entity) use(&$inserted) {
+            ->inserted(function ($entity, WriteRowsDTO $event) use(&$inserted) {
                 $inserted[] = $entity;
             })
         ;

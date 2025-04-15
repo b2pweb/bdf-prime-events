@@ -6,6 +6,9 @@ use Bdf\Prime\Mapper\Mapper;
 use Bdf\Prime\Platform\PlatformInterface;
 use Bdf\Prime\Repository\RepositoryInterface;
 use Exception;
+use MySQLReplication\Event\DTO\DeleteRowsDTO;
+use MySQLReplication\Event\DTO\UpdateRowsDTO;
+use MySQLReplication\Event\DTO\WriteRowsDTO;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -37,17 +40,17 @@ final class EntityEventsListener
     private $platform;
 
     /**
-     * @var array<callable(E):void>
+     * @var array<callable(E, WriteRowsDTO=):void>
      */
     private $insertListeners = [];
 
     /**
-     * @var array<callable(E, E):void>
+     * @var array<callable(E, E, UpdateRowsDTO=):void>
      */
     private $updateListeners = [];
 
     /**
-     * @var array<callable(E):void>
+     * @var array<callable(E, DeleteRowsDTO=):void>
      */
     private $deleteListeners = [];
 
@@ -70,35 +73,35 @@ final class EntityEventsListener
     /**
      * @internal
      */
-    public function onWrite(array $value): void
+    public function onWrite(array $value, WriteRowsDTO $event): void
     {
         $this->logger->info('[MySQL Event] write on ' . $this->mapper->getEntityClass(), ['value' => $value]);
-        $this->notify($this->insertListeners, $this->entity($value));
+        $this->notify($this->insertListeners, $this->entity($value), $event);
     }
 
     /**
      * @param array{before: array, after: array} $value
      * @internal
      */
-    public function onUpdate(array $value): void
+    public function onUpdate(array $value, UpdateRowsDTO $event): void
     {
         $this->logger->info('[MySQL Event] update on ' . $this->mapper->getEntityClass(), ['value' => $value]);
-        $this->notify($this->updateListeners, $this->entity($value['before']), $this->entity($value['after']));
+        $this->notify($this->updateListeners, $this->entity($value['before']), $this->entity($value['after']), $event);
     }
 
     /**
      * @internal
      */
-    public function onDelete(array $value): void
+    public function onDelete(array $value, DeleteRowsDTO $event): void
     {
         $this->logger->info('[MySQL Event] delete on ' . $this->mapper->getEntityClass(), ['value' => $value]);
-        $this->notify($this->deleteListeners, $this->entity($value));
+        $this->notify($this->deleteListeners, $this->entity($value), $event);
     }
 
     /**
      * Register post insert event
      *
-     * @param callable(E):void $listener
+     * @param callable(E, WriteRowsDTO=):void $listener
      *
      * @return $this
      */
@@ -112,7 +115,7 @@ final class EntityEventsListener
     /**
      * Register post update event
      *
-     * @param callable(E, E):void $listener
+     * @param callable(E, E, UpdateRowsDTO=):void $listener
      *
      * @return $this
      */
@@ -126,7 +129,7 @@ final class EntityEventsListener
     /**
      * Register post delete event
      *
-     * @param callable(E):void $listener
+     * @param callable(E, DeleteRowsDTO=):void $listener
      *
      * @return $this
      */
