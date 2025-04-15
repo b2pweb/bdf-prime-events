@@ -3,6 +3,9 @@
 namespace Tests\PrimeEvents\TestFiles;
 
 use Bdf\PrimeEvents\Factory\EntityEventsListenerInterface;
+use MySQLReplication\Event\DTO\DeleteRowsDTO;
+use MySQLReplication\Event\DTO\UpdateRowsDTO;
+use MySQLReplication\Event\DTO\WriteRowsDTO;
 
 class OtherEntityListener implements EntityEventsListenerInterface
 {
@@ -20,17 +23,17 @@ class OtherEntityListener implements EntityEventsListenerInterface
         return OtherEntity::class;
     }
 
-    public function onInsert($entity): void
+    public function onInsert($entity, ?WriteRowsDTO $event = null): void
     {
         self::$inserted[] = $entity;
     }
 
-    public function onUpdate($oldEntity, $newEntity): void
+    public function onUpdate($oldEntity, $newEntity, ?UpdateRowsDTO $event = null): void
     {
         self::$updated[] = [$oldEntity, $newEntity];
     }
 
-    public function onDelete($entity): void
+    public function onDelete($entity, ?DeleteRowsDTO $event = null): void
     {
         self::$deleted[] = $entity;
     }

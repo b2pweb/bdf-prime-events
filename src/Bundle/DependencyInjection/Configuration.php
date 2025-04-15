@@ -18,7 +18,7 @@ class Configuration implements ConfigurationInterface
      * @psalm-suppress PossiblyUndefinedMethod
      * @psalm-suppress UndefinedInterfaceMethod
      */
-    public function getConfigTreeBuilder()
+    public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('prime_events');
         /** @var ArrayNodeDefinition $root */

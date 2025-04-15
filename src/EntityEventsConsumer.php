@@ -151,7 +151,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         /** @var array $value */
         foreach ($event->getValues() as $value) {
-            $listener->onDelete($value);
+            $listener->onDelete($value, $event);
         }
     }
 
@@ -166,7 +166,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         /** @var array $value */
         foreach ($event->getValues() as $value) {
-            $listener->onWrite($value);
+            $listener->onWrite($value, $event);
         }
     }
 
@@ -181,7 +181,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         /** @var array{before: array, after: array} $value */
         foreach ($event->getValues() as $value) {
-            $listener->onUpdate($value);
+            $listener->onUpdate($value, $event);
         }
     }
 
