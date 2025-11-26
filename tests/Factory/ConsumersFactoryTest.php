@@ -127,7 +127,7 @@ class ConsumersFactoryTest extends TestCase
         $factory->register($otherListener = new OtherEntityListener());
 
         $insertListener = new \ReflectionProperty(EntityEventsListener::class, 'insertListeners');
-        $insertListener->setAccessible(true);
+        PHP_VERSION_ID >= 80100 or $insertListener->setAccessible(true);
 
         $consumer1 = $factory->forConnection('test');
         $this->assertSame($myListener, $insertListener->getValue($consumer1->forEntity(MyTestEntity::class))[0][0]);

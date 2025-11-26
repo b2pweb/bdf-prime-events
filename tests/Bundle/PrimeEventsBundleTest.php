@@ -39,7 +39,7 @@ class PrimeEventsBundleTest extends TestCase
         $factory = $kernel->getContainer()->get(ConsumersFactory::class);
 
         $r = (new \ReflectionClass($factory))->getProperty('listeners');
-        $r->setAccessible(true);
+        PHP_VERSION_ID >= 80100 or $r->setAccessible(true);
 
         $this->assertInstanceOf(MyTestEntityListener::class, $r->getValue($factory)[0]);
     }
@@ -55,7 +55,7 @@ class PrimeEventsBundleTest extends TestCase
         $factory = $kernel->getContainer()->get(ConsumersFactory::class);
 
         $r = (new \ReflectionClass($factory))->getProperty('config');
-        $r->setAccessible(true);
+        PHP_VERSION_ID >= 80100 or $r->setAccessible(true);
 
         $this->assertEquals(['other' => new ConsumerConfiguration([
             'user' => 'other_user',
