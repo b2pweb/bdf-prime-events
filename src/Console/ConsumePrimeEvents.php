@@ -85,7 +85,7 @@ class ConsumePrimeEvents extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->parseOptions($input);
         $consumer = $this->factory->forConnection($input->getArgument('connection'));
