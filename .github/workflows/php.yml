@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        prime-version: ['2.1', '2.2', '2.3', '3.0']
+        prime-version: ['2.2', '2.3', '3.0']
     name: Compatibility with prime ${{ matrix.prime-version }}
 
     steps:
