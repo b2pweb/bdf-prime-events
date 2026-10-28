@@ -49,9 +49,10 @@ jobs:
   prime-compatiblity:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         prime-version: ['2.1', '2.2', '2.3', '3.0']
-    name: Compatibility with prime ${{ matrix.prime-versions }}
+    name: Compatibility with prime ${{ matrix.prime-version }}
 
     steps:
     - uses: actions/checkout@v2
@@ -73,8 +74,8 @@ jobs:
     - name: Install MySQL
       run: ./.github/run-mysql.sh
 
-    - name: Install Prime ${{ matrix.prime-versions }}
-      run: composer req --dev b2pweb/bdf-prime:~${{ matrix.prime-versions }}.0 --no-install
+    - name: Install Prime ${{ matrix.prime-version }}
+      run: composer req --dev b2pweb/bdf-prime:~${{ matrix.prime-version }}.0 --no-install
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
