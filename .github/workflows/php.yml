@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-versions: ['7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5']
+        php-versions: ['8.4', '8.5']
     name: PHP ${{ matrix.php-versions }}
 
     steps:
@@ -46,6 +46,43 @@ jobs:
     - name: Run test suite
       run: composer run-script tests
 
+  prime-compatiblity:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        prime-version: ['2.2', '2.3', '3.0']
+    name: Compatibility with prime ${{ matrix.prime-version }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set Timezone
+      uses: szenius/set-timezone@v1.0
+      with:
+        timezoneLinux: "Europe/Paris"
+
+    - name: Install PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.4
+        extensions: json
+        ini-values: date.timezone=Europe/Paris
+    - name: Check PHP Version
+      run: php -v
+
+    - name: Install MySQL
+      run: ./.github/run-mysql.sh
+
+    - name: Install Prime ${{ matrix.prime-version }}
+      run: composer req --dev b2pweb/bdf-prime:~${{ matrix.prime-version }}.0 --no-install
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run test suite
+      run: composer run-script tests
+
   analysis:
     name: Analysis
     runs-on: ubuntu-latest
@@ -61,7 +98,7 @@ jobs:
     - name: Install PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: 7.4
+        php-version: 8.4
         extensions: json
         ini-values: date.timezone=Europe/Paris
 
@@ -75,7 +112,7 @@ jobs:
       run: composer install --prefer-dist --no-progress
 
     - name: Run type coverage
-      run: composer run-script psalm
+      run: composer run-script phpstan
 
   coverage:
     name: Code coverage
@@ -92,7 +129,7 @@ jobs:
     - name: Install PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: 7.4
+        php-version: 8.4
         extensions: json
         ini-values: date.timezone=Europe/Paris
 

@@ -4,8 +4,9 @@ namespace Bdf\PrimeEvents;
 
 use Bdf\Prime\ServiceLocator;
 use Bdf\PrimeEvents\Factory\ConsumersFactory;
+use Closure;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
 use InvalidArgumentException;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\BinLog\BinLogException;
@@ -19,6 +20,9 @@ use MySQLReplication\Event\EventSubscribers;
 use MySQLReplication\MySQLReplicationFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+
+use function assert;
+use function file_get_contents;
 
 /**
  * Consume MySQL replication events for watch entities writes
@@ -50,61 +54,35 @@ use Psr\Log\NullLogger;
 final class EntityEventsConsumer extends EventSubscribers
 {
     /**
-     * @var ServiceLocator
-     */
-    private $prime;
-
-    /**
-     * @var callable|null
-     */
-    private $configurator;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @var array<class-string, EntityEventsListener>
      * @psalm-var class-string-map<E, EntityEventsListener<E>>
      */
-    private $entityListenersByEntityClass = [];
+    private array $entityListenersByEntityClass = [];
 
     /**
      * @var array<string, EntityEventsListener>
      */
-    private $entityListenersByTable = [];
+    private array $entityListenersByTable = [];
+    private ?MySQLReplicationFactory $binLogStream = null;
+    private ?BinLogCurrent $binLogCurrent = null;
 
-    /**
-     * @var MySQLReplicationFactory|null
-     */
-    private $binLogStream;
+    public function __construct(
+        private readonly ServiceLocator $prime,
 
-    /**
-     * @var string|null
-     */
-    private $logPositionFile;
+        /**
+         * File which store the last event log position
+         */
+        private readonly ?string $logPositionFile = null,
 
-    /**
-     * @var BinLogCurrent|null
-     */
-    private $binLogCurrent;
-
-
-    /**
-     * EntityEventsListener constructor.
-     *
-     * @param ServiceLocator $prime Prime
-     * @param string|null $logPositionFile File which store the last event log position
-     * @param callable|null $configurator Configurator callback
-     */
-    public function __construct(ServiceLocator $prime, ?string $logPositionFile = null, ?callable $configurator = null, ?LoggerInterface $logger = null)
-    {
-        $this->prime = $prime;
-        $this->configurator = $configurator;
-        $this->logPositionFile = $logPositionFile;
-        $this->logger = $logger ?? new NullLogger();
-
+        /**
+         * Configurator callback
+         * Takes as argument the replication configuration builder.
+         *
+         * @var null|Closure(ConfigBuilder):void
+         */
+        private readonly ?Closure $configurator = null,
+        private readonly LoggerInterface $logger = new NullLogger()
+    ) {
         $this->loadLastPosition();
     }
 
@@ -132,6 +110,7 @@ final class EntityEventsConsumer extends EventSubscribers
         }
 
         $repository = $this->prime->repository($entityClass);
+        assert($repository !== null);
         $listener = new EntityEventsListener($repository, $this->logger);
 
         return $this->entityListenersByTable[$repository->metadata()->table()]
@@ -147,10 +126,10 @@ final class EntityEventsConsumer extends EventSubscribers
     {
         parent::onDelete($event);
 
-        $listener = $this->entityListenersByTable[$event->getTableMap()->getTable()];
+        $listener = $this->entityListenersByTable[$event->tableMap->table];
 
-        /** @var array $value */
-        foreach ($event->getValues() as $value) {
+        /** @var mixed[] $value */
+        foreach ($event->values as $value) {
             $listener->onDelete($value, $event);
         }
     }
@@ -162,10 +141,10 @@ final class EntityEventsConsumer extends EventSubscribers
     {
         parent::onWrite($event);
 
-        $listener = $this->entityListenersByTable[$event->getTableMap()->getTable()];
+        $listener = $this->entityListenersByTable[$event->tableMap->table];
 
-        /** @var array $value */
-        foreach ($event->getValues() as $value) {
+        /** @var mixed[] $value */
+        foreach ($event->values as $value) {
             $listener->onWrite($value, $event);
         }
     }
@@ -177,10 +156,10 @@ final class EntityEventsConsumer extends EventSubscribers
     {
         parent::onUpdate($event);
 
-        $listener = $this->entityListenersByTable[$event->getTableMap()->getTable()];
+        $listener = $this->entityListenersByTable[$event->tableMap->table];
 
-        /** @var array{before: array, after: array} $value */
-        foreach ($event->getValues() as $value) {
+        /** @var array{before: mixed[], after: mixed[]} $value */
+        foreach ($event->values as $value) {
             $listener->onUpdate($value, $event);
         }
     }
@@ -191,7 +170,7 @@ final class EntityEventsConsumer extends EventSubscribers
     protected function allEvents(EventDTO $event): void
     {
         $this->logger->debug((string) $event);
-        $this->binLogCurrent = $event->getEventInfo()->getBinLogCurrent();
+        $this->binLogCurrent = $event->getEventInfo()->binLogCurrent;
     }
 
     /**
@@ -255,6 +234,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         foreach ($this->entityListenersByEntityClass as $entityClass => $_) {
             $repository = $this->prime->repository($entityClass);
+            assert($repository !== null);
             $connection = $repository->connection();
 
             if ($dbName = $connection->getDatabase()) {
@@ -264,9 +244,9 @@ final class EntityEventsConsumer extends EventSubscribers
             $tables[] = $repository->metadata()->table();
 
             if ($connection instanceof Connection) {
-                if (!$connection->getDatabasePlatform() instanceof MySQLPlatform) {
+                if (!$connection->getDatabasePlatform() instanceof AbstractMySQLPlatform) {
                     throw new InvalidArgumentException(sprintf(
-                        'The connection "%s" must be a MySQL connection',
+                        'The connection "%s" must be a MySQL or MariaDB connection',
                         $connection->getName()
                     ));
                 }
@@ -280,7 +260,7 @@ final class EntityEventsConsumer extends EventSubscribers
             }
         }
 
-        $builder = (new ConfigBuilder())
+        $builder = new ConfigBuilder()
             ->withSlaveId(100)
             ->withHeartbeatPeriod(3)
             ->withDatabasesOnly(array_values($databases))
@@ -322,8 +302,14 @@ final class EntityEventsConsumer extends EventSubscribers
             return;
         }
 
+        $position = file_get_contents($this->logPositionFile);
+
+        if ($position === false) {
+            return;
+        }
+
         $content = unserialize(
-            file_get_contents($this->logPositionFile),
+            $position,
             ['allowed_classes' => [BinLogCurrent::class]]
         );
 

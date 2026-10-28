@@ -10,6 +10,8 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
  * Class PrimeEventsBundle
+ *
+ * @psalm-suppress DeprecatedInterface
  */
 class PrimeEventsBundle extends Bundle
 {

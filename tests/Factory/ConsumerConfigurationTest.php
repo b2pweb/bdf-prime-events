@@ -34,7 +34,7 @@ class ConsumerConfigurationTest extends TestCase
 
         $built = $builder->build();
 
-        $this->assertEquals('my_user', $built->getUser());
-        $this->assertEquals('my_password', $built->getPassword());
+        $this->assertEquals('my_user', $built->user);
+        $this->assertEquals('my_password', $built->password);
     }
 }

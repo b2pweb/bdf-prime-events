@@ -12,6 +12,8 @@ use MySQLReplication\Event\DTO\WriteRowsDTO;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
+use function is_object;
+
 /**
  * Listener for database entities writes
  *
@@ -20,58 +22,43 @@ use Psr\Log\NullLogger;
 final class EntityEventsListener
 {
     /**
-     * @var RepositoryInterface<E>
-     */
-    private $repository;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @var Mapper<E>
      */
-    private $mapper;
-
-    /**
-     * @var PlatformInterface
-     */
-    private $platform;
+    private readonly Mapper $mapper;
+    private readonly PlatformInterface $platform;
 
     /**
      * @var array<callable(E, WriteRowsDTO=):void>
      */
-    private $insertListeners = [];
+    private array $insertListeners = [];
 
     /**
      * @var array<callable(E, E, UpdateRowsDTO=):void>
      */
-    private $updateListeners = [];
+    private array $updateListeners = [];
 
     /**
      * @var array<callable(E, DeleteRowsDTO=):void>
      */
-    private $deleteListeners = [];
+    private array $deleteListeners = [];
 
     /**
-     * EntityEventsListener constructor.
-     *
-     * @param RepositoryInterface<E> $repository
-     * @param LoggerInterface|null $logger
-     *
      * @throws \Bdf\Prime\Exception\PrimeException
      */
-    public function __construct(RepositoryInterface $repository, ?LoggerInterface $logger = null)
-    {
-        $this->repository = $repository;
+    public function __construct(
+        /**
+         * @var RepositoryInterface<E>
+         */
+        private readonly RepositoryInterface $repository,
+        private readonly LoggerInterface $logger = new NullLogger()
+    ) {
         $this->mapper = $repository->mapper();
         $this->platform = $repository->connection()->platform();
-        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
      * @internal
+     * @param mixed[] $value
      */
     public function onWrite(array $value, WriteRowsDTO $event): void
     {
@@ -80,7 +67,7 @@ final class EntityEventsListener
     }
 
     /**
-     * @param array{before: array, after: array} $value
+     * @param array{before: mixed[], after: mixed[]} $value
      * @internal
      */
     public function onUpdate(array $value, UpdateRowsDTO $event): void
@@ -91,6 +78,7 @@ final class EntityEventsListener
 
     /**
      * @internal
+     * @param mixed[] $value
      */
     public function onDelete(array $value, DeleteRowsDTO $event): void
     {
@@ -143,10 +131,10 @@ final class EntityEventsListener
     /**
      * Convert event data to entity
      *
-     * @param array $value
+     * @param mixed[] $value
      * @return E
      */
-    private function entity(array $value)
+    private function entity(array $value): object
     {
         return $this->mapper->prepareFromRepository($value, $this->platform);
     }
@@ -164,7 +152,7 @@ final class EntityEventsListener
             } catch (Exception $e) {
                 if (is_object($listener)) {
                     $listenerName = get_class($listener);
-                } elseif (is_array($listener)) {
+                } elseif (is_array($listener) && is_object($listener[0])) {
                     $listenerName = get_class($listener[0]);
                 } elseif (is_string($listener)) {
                     $listenerName = $listener;

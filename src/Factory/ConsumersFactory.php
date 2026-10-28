@@ -39,43 +39,21 @@ use Psr\Log\NullLogger;
  */
 final class ConsumersFactory
 {
-    /**
-     * @var ServiceLocator
-     */
-    private $prime;
+    public function __construct(
+        private readonly ServiceLocator $prime,
+        /**
+         * Consumers configurations indexed by connection name
+         *
+         * @var array<string, ConsumerConfiguration>
+         */
+        private array $config = [],
 
-    /**
-     * The consumers configurations indexed by connection name
-     *
-     * @var array<string, ConsumerConfiguration>
-     */
-    private $config;
-
-    /**
-     * @var EntityEventsListenerInterface[]
-     */
-    private $listeners;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * ConsumersFactory constructor.
-     *
-     * @param ServiceLocator $prime
-     * @param array<string, ConsumerConfiguration> $config Consumers configurations indexed by connection name
-     * @param EntityEventsListenerInterface[] $listeners
-     * @param LoggerInterface|null $logger
-     */
-    public function __construct(ServiceLocator $prime, array $config = [], array $listeners = [], ?LoggerInterface $logger = null)
-    {
-        $this->prime = $prime;
-        $this->config = $config;
-        $this->listeners = $listeners;
-        $this->logger = $logger ?? new NullLogger();
-    }
+        /**
+         * @var EntityEventsListenerInterface[]
+         */
+        private array $listeners = [],
+        private readonly LoggerInterface $logger = new NullLogger()
+    ) {}
 
     /**
      * Get the MySQL replication events consumer for the requested connection
@@ -112,7 +90,7 @@ final class ConsumersFactory
         $consumer = new EntityEventsConsumer(
             $this->prime,
             $config->logPositionFile(),
-            [$config, 'configure'],
+            $config->configure(...),
             $this->logger
         );
 
@@ -127,9 +105,9 @@ final class ConsumersFactory
      * Add a new consumer configuration for a connection
      *
      * @param string $connection The connection name
-     * @param array|ConsumerConfiguration $config The configuration
+     * @param array<string, mixed>|ConsumerConfiguration $config The configuration
      */
-    public function configure(string $connection, $config): void
+    public function configure(string $connection, array|ConsumerConfiguration $config): void
     {
         $this->config[$connection] = $config instanceof ConsumerConfiguration
             ? $config
@@ -161,8 +139,6 @@ final class ConsumersFactory
         foreach ($this->listeners as $listener) {
             $repository = $this->prime->repository($listener->entityClass());
 
-            // @todo remove when psalm feature is merged on prime
-            /** @psalm-suppress DocblockTypeContradiction */
             if (!$repository) {
                 throw new LogicException(sprintf(
                     'The entity "%s" cannot be found for the listener "%s"',
@@ -190,9 +166,9 @@ final class ConsumersFactory
     {
         $consumer
             ->forEntity($listener->entityClass())
-            ->inserted([$listener, 'onInsert'])
-            ->updated([$listener, 'onUpdate'])
-            ->deleted([$listener, 'onDelete'])
+            ->inserted($listener->onInsert(...))
+            ->updated($listener->onUpdate(...))
+            ->deleted($listener->onDelete(...))
         ;
     }
 }

@@ -27,46 +27,15 @@ class ConsumePrimeEvents extends Command
 {
     use ByteConverterExtension;
 
-    protected static $defaultName = 'prime:events:consume';
+    private bool $running = true;
+    private ?int $maxMemory = null;
+    private ?int $max = null;
 
-    /**
-     * @var ConsumersFactory
-     */
-    private $factory;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @var bool
-     */
-    private $running = true;
-
-    /**
-     * @var int|null
-     */
-    private $maxMemory = null;
-
-    /**
-     * @var int|null
-     */
-    private $max = null;
-
-
-    /**
-     * PrimeEventsConsumer constructor.
-     *
-     * @param ConsumersFactory $factory
-     * @param LoggerInterface|null $logger
-     */
-    public function __construct(ConsumersFactory $factory, ?LoggerInterface $logger = null)
-    {
+    public function __construct(
+        private readonly ConsumersFactory $factory,
+        private readonly LoggerInterface $logger = new NullLogger()
+    ) {
         parent::__construct();
-
-        $this->factory = $factory;
-        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
@@ -107,7 +76,7 @@ class ConsumePrimeEvents extends Command
 
     private function runConsumer(EntityEventsConsumer $consumer): void
     {
-        $stop = function () use ($consumer): void {
+        $stop = function (): void {
             $this->running = false;
         };
 
@@ -119,7 +88,7 @@ class ConsumePrimeEvents extends Command
             try {
                 $consumer->consume();
             } catch (Throwable $e) {
-                $this->logger->error('[MySQL Event] Uncaught exception during consume : ' . $e);
+                $this->logger->error('[MySQL Event] Uncaught exception during consume : ' . (string) $e);
             }
         }
 

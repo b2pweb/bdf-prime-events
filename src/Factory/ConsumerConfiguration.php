@@ -7,22 +7,14 @@ use MySQLReplication\Config\ConfigBuilder;
 /**
  * Store configuration for events consumers
  */
-final class ConsumerConfiguration
+final readonly class ConsumerConfiguration
 {
-    /**
-     * @var array
-     */
-    private $config;
-
-    /**
-     * ConsumerConfiguration constructor.
-     *
-     * @param array $config
-     */
-    public function __construct(array $config)
-    {
-        $this->config = $config;
-    }
+    public function __construct(
+        /**
+         * @var array<string, mixed>
+         */
+        private array $config,
+    ) {}
 
     /**
      * Get the file which stores the last consumed event

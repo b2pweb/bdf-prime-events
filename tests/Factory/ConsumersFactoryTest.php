@@ -9,6 +9,7 @@ use Bdf\PrimeEvents\EntityEventsConsumer;
 use Bdf\PrimeEvents\EntityEventsListener;
 use Bdf\PrimeEvents\Factory\ConsumersFactory;
 use PHPUnit\Framework\TestCase;
+use ReflectionFunction;
 use Symfony\Component\DependencyInjection\Container;
 use Tests\PrimeEvents\PrimeEventsTestKernel;
 use Tests\PrimeEvents\TestFiles\MyTestEntity;
@@ -130,11 +131,11 @@ class ConsumersFactoryTest extends TestCase
         PHP_VERSION_ID >= 80100 or $insertListener->setAccessible(true);
 
         $consumer1 = $factory->forConnection('test');
-        $this->assertSame($myListener, $insertListener->getValue($consumer1->forEntity(MyTestEntity::class))[0][0]);
+        $this->assertSame($myListener, new ReflectionFunction($insertListener->getValue($consumer1->forEntity(MyTestEntity::class))[0])->getClosureThis());
         $this->assertEmpty($insertListener->getValue($consumer1->forEntity(OtherEntity::class)));
 
         $consumer2 = $factory->forConnection('other');
         $this->assertEmpty($insertListener->getValue($consumer2->forEntity(MyTestEntity::class)));
-        $this->assertSame($otherListener, $insertListener->getValue($consumer2->forEntity(OtherEntity::class))[0][0]);
+        $this->assertSame($otherListener, new ReflectionFunction($insertListener->getValue($consumer2->forEntity(OtherEntity::class))[0])->getClosureThis());
     }
 }
