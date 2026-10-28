@@ -105,7 +105,7 @@ final class ConsumersFactory
      * Add a new consumer configuration for a connection
      *
      * @param string $connection The connection name
-     * @param array|ConsumerConfiguration $config The configuration
+     * @param array<string, mixed>|ConsumerConfiguration $config The configuration
      */
     public function configure(string $connection, array|ConsumerConfiguration $config): void
     {

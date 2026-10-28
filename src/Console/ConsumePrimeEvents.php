@@ -76,7 +76,7 @@ class ConsumePrimeEvents extends Command
 
     private function runConsumer(EntityEventsConsumer $consumer): void
     {
-        $stop = function () use ($consumer): void {
+        $stop = function (): void {
             $this->running = false;
         };
 

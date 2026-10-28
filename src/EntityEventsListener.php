@@ -58,6 +58,7 @@ final class EntityEventsListener
 
     /**
      * @internal
+     * @param mixed[] $value
      */
     public function onWrite(array $value, WriteRowsDTO $event): void
     {
@@ -66,7 +67,7 @@ final class EntityEventsListener
     }
 
     /**
-     * @param array{before: array, after: array} $value
+     * @param array{before: mixed[], after: mixed[]} $value
      * @internal
      */
     public function onUpdate(array $value, UpdateRowsDTO $event): void
@@ -77,6 +78,7 @@ final class EntityEventsListener
 
     /**
      * @internal
+     * @param mixed[] $value
      */
     public function onDelete(array $value, DeleteRowsDTO $event): void
     {
@@ -129,7 +131,7 @@ final class EntityEventsListener
     /**
      * Convert event data to entity
      *
-     * @param array $value
+     * @param mixed[] $value
      * @return E
      */
     private function entity(array $value): object

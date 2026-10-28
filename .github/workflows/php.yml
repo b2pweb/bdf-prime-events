@@ -112,7 +112,7 @@ jobs:
       run: composer install --prefer-dist --no-progress
 
     - name: Run type coverage
-      run: composer run-script psalm
+      run: composer run-script phpstan
 
   coverage:
     name: Code coverage

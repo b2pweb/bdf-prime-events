@@ -21,6 +21,7 @@ use MySQLReplication\MySQLReplicationFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
+use function assert;
 use function file_get_contents;
 
 /**
@@ -109,6 +110,7 @@ final class EntityEventsConsumer extends EventSubscribers
         }
 
         $repository = $this->prime->repository($entityClass);
+        assert($repository !== null);
         $listener = new EntityEventsListener($repository, $this->logger);
 
         return $this->entityListenersByTable[$repository->metadata()->table()]
@@ -126,7 +128,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         $listener = $this->entityListenersByTable[$event->tableMap->table];
 
-        /** @var array $value */
+        /** @var mixed[] $value */
         foreach ($event->values as $value) {
             $listener->onDelete($value, $event);
         }
@@ -141,7 +143,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         $listener = $this->entityListenersByTable[$event->tableMap->table];
 
-        /** @var array $value */
+        /** @var mixed[] $value */
         foreach ($event->values as $value) {
             $listener->onWrite($value, $event);
         }
@@ -156,7 +158,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         $listener = $this->entityListenersByTable[$event->tableMap->table];
 
-        /** @var array{before: array, after: array} $value */
+        /** @var array{before: mixed[], after: mixed[]} $value */
         foreach ($event->values as $value) {
             $listener->onUpdate($value, $event);
         }
@@ -232,6 +234,7 @@ final class EntityEventsConsumer extends EventSubscribers
 
         foreach ($this->entityListenersByEntityClass as $entityClass => $_) {
             $repository = $this->prime->repository($entityClass);
+            assert($repository !== null);
             $connection = $repository->connection();
 
             if ($dbName = $connection->getDatabase()) {
