@@ -46,6 +46,42 @@ jobs:
     - name: Run test suite
       run: composer run-script tests
 
+  prime-compatiblity:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        prime-version: ['2.1', '2.2', '2.3', '3.0']
+    name: Compatibility with prime ${{ matrix.prime-versions }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set Timezone
+      uses: szenius/set-timezone@v1.0
+      with:
+        timezoneLinux: "Europe/Paris"
+
+    - name: Install PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: 8.4
+        extensions: json
+        ini-values: date.timezone=Europe/Paris
+    - name: Check PHP Version
+      run: php -v
+
+    - name: Install MySQL
+      run: ./.github/run-mysql.sh
+
+    - name: Install Prime ${{ matrix.prime-versions }}
+      run: composer req --dev b2pweb/bdf-prime:~${{ matrix.prime-versions }}.0 --no-install
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run test suite
+      run: composer run-script tests
+
   analysis:
     name: Analysis
     runs-on: ubuntu-latest
