@@ -27,8 +27,6 @@ class ConsumePrimeEvents extends Command
 {
     use ByteConverterExtension;
 
-    protected static $defaultName = 'prime:events:consume';
-
     /**
      * @var ConsumersFactory
      */
@@ -119,7 +117,7 @@ class ConsumePrimeEvents extends Command
             try {
                 $consumer->consume();
             } catch (Throwable $e) {
-                $this->logger->error('[MySQL Event] Uncaught exception during consume : ' . $e);
+                $this->logger->error('[MySQL Event] Uncaught exception during consume : ' . (string) $e);
             }
         }
 

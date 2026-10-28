@@ -20,6 +20,8 @@ use MySQLReplication\MySQLReplicationFactory;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
+use function file_get_contents;
+
 /**
  * Consume MySQL replication events for watch entities writes
  *
@@ -147,10 +149,10 @@ final class EntityEventsConsumer extends EventSubscribers
     {
         parent::onDelete($event);
 
-        $listener = $this->entityListenersByTable[$event->getTableMap()->getTable()];
+        $listener = $this->entityListenersByTable[$event->tableMap->table];
 
         /** @var array $value */
-        foreach ($event->getValues() as $value) {
+        foreach ($event->values as $value) {
             $listener->onDelete($value, $event);
         }
     }
@@ -162,10 +164,10 @@ final class EntityEventsConsumer extends EventSubscribers
     {
         parent::onWrite($event);
 
-        $listener = $this->entityListenersByTable[$event->getTableMap()->getTable()];
+        $listener = $this->entityListenersByTable[$event->tableMap->table];
 
         /** @var array $value */
-        foreach ($event->getValues() as $value) {
+        foreach ($event->values as $value) {
             $listener->onWrite($value, $event);
         }
     }
@@ -177,10 +179,10 @@ final class EntityEventsConsumer extends EventSubscribers
     {
         parent::onUpdate($event);
 
-        $listener = $this->entityListenersByTable[$event->getTableMap()->getTable()];
+        $listener = $this->entityListenersByTable[$event->tableMap->table];
 
         /** @var array{before: array, after: array} $value */
-        foreach ($event->getValues() as $value) {
+        foreach ($event->values as $value) {
             $listener->onUpdate($value, $event);
         }
     }
@@ -191,7 +193,7 @@ final class EntityEventsConsumer extends EventSubscribers
     protected function allEvents(EventDTO $event): void
     {
         $this->logger->debug((string) $event);
-        $this->binLogCurrent = $event->getEventInfo()->getBinLogCurrent();
+        $this->binLogCurrent = $event->getEventInfo()->binLogCurrent;
     }
 
     /**
@@ -322,8 +324,14 @@ final class EntityEventsConsumer extends EventSubscribers
             return;
         }
 
+        $position = file_get_contents($this->logPositionFile);
+
+        if ($position === false) {
+            return;
+        }
+
         $content = unserialize(
-            file_get_contents($this->logPositionFile),
+            $position,
             ['allowed_classes' => [BinLogCurrent::class]]
         );
 

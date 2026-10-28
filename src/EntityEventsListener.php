@@ -12,6 +12,8 @@ use MySQLReplication\Event\DTO\WriteRowsDTO;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
+use function is_object;
+
 /**
  * Listener for database entities writes
  *
@@ -164,7 +166,7 @@ final class EntityEventsListener
             } catch (Exception $e) {
                 if (is_object($listener)) {
                     $listenerName = get_class($listener);
-                } elseif (is_array($listener)) {
+                } elseif (is_array($listener) && is_object($listener[0])) {
                     $listenerName = get_class($listener[0]);
                 } elseif (is_string($listener)) {
                     $listenerName = $listener;
