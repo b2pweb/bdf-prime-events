@@ -27,7 +27,7 @@ interface EntityEventsListenerInterface
      * @param E $entity
      * @param WriteRowsDTO|null $event
      */
-    public function onInsert($entity/*, ?WriteRowsDTO $event = null*/): void;
+    public function onInsert($entity, ?WriteRowsDTO $event = null): void;
 
     /**
      * The entity has been updated
@@ -36,7 +36,7 @@ interface EntityEventsListenerInterface
      * @param E $newEntity The new value of the entity
      * @param UpdateRowsDTO|null $event
      */
-    public function onUpdate($oldEntity, $newEntity/*, ?UpdateRowsDTO $event = null*/): void;
+    public function onUpdate($oldEntity, $newEntity, ?UpdateRowsDTO $event = null): void;
 
     /**
      * The entity has been deleted
@@ -44,5 +44,5 @@ interface EntityEventsListenerInterface
      * @param E $entity The deleted entity
      * @param DeleteRowsDTO|null $event
      */
-    public function onDelete($entity/*, ?DeleteRowsDTO $event = null*/): void;
+    public function onDelete($entity, ?DeleteRowsDTO $event = null): void;
 }

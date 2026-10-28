@@ -27,44 +27,15 @@ class ConsumePrimeEvents extends Command
 {
     use ByteConverterExtension;
 
-    /**
-     * @var ConsumersFactory
-     */
-    private $factory;
+    private bool $running = true;
+    private ?int $maxMemory = null;
+    private ?int $max = null;
 
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @var bool
-     */
-    private $running = true;
-
-    /**
-     * @var int|null
-     */
-    private $maxMemory = null;
-
-    /**
-     * @var int|null
-     */
-    private $max = null;
-
-
-    /**
-     * PrimeEventsConsumer constructor.
-     *
-     * @param ConsumersFactory $factory
-     * @param LoggerInterface|null $logger
-     */
-    public function __construct(ConsumersFactory $factory, ?LoggerInterface $logger = null)
-    {
+    public function __construct(
+        private readonly ConsumersFactory $factory,
+        private readonly LoggerInterface $logger = new NullLogger()
+    ) {
         parent::__construct();
-
-        $this->factory = $factory;
-        $this->logger = $logger ?? new NullLogger();
     }
 
     /**

@@ -4,9 +4,9 @@ namespace Bdf\PrimeEvents;
 
 use Bdf\Prime\ServiceLocator;
 use Bdf\PrimeEvents\Factory\ConsumersFactory;
+use Closure;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
-use Doctrine\DBAL\Platforms\MySQLPlatform;
 use InvalidArgumentException;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\BinLog\BinLogException;
@@ -53,61 +53,35 @@ use function file_get_contents;
 final class EntityEventsConsumer extends EventSubscribers
 {
     /**
-     * @var ServiceLocator
-     */
-    private $prime;
-
-    /**
-     * @var callable|null
-     */
-    private $configurator;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @var array<class-string, EntityEventsListener>
      * @psalm-var class-string-map<E, EntityEventsListener<E>>
      */
-    private $entityListenersByEntityClass = [];
+    private array $entityListenersByEntityClass = [];
 
     /**
      * @var array<string, EntityEventsListener>
      */
-    private $entityListenersByTable = [];
+    private array $entityListenersByTable = [];
+    private ?MySQLReplicationFactory $binLogStream = null;
+    private ?BinLogCurrent $binLogCurrent = null;
 
-    /**
-     * @var MySQLReplicationFactory|null
-     */
-    private $binLogStream;
+    public function __construct(
+        private readonly ServiceLocator $prime,
 
-    /**
-     * @var string|null
-     */
-    private $logPositionFile;
+        /**
+         * File which store the last event log position
+         */
+        private readonly ?string $logPositionFile = null,
 
-    /**
-     * @var BinLogCurrent|null
-     */
-    private $binLogCurrent;
-
-
-    /**
-     * EntityEventsListener constructor.
-     *
-     * @param ServiceLocator $prime Prime
-     * @param string|null $logPositionFile File which store the last event log position
-     * @param callable|null $configurator Configurator callback
-     */
-    public function __construct(ServiceLocator $prime, ?string $logPositionFile = null, ?callable $configurator = null, ?LoggerInterface $logger = null)
-    {
-        $this->prime = $prime;
-        $this->configurator = $configurator;
-        $this->logPositionFile = $logPositionFile;
-        $this->logger = $logger ?? new NullLogger();
-
+        /**
+         * Configurator callback
+         * Takes as argument the replication configuration builder.
+         *
+         * @var null|Closure(ConfigBuilder):void
+         */
+        private readonly ?Closure $configurator = null,
+        private readonly LoggerInterface $logger = new NullLogger()
+    ) {
         $this->loadLastPosition();
     }
 
@@ -283,7 +257,7 @@ final class EntityEventsConsumer extends EventSubscribers
             }
         }
 
-        $builder = (new ConfigBuilder())
+        $builder = new ConfigBuilder()
             ->withSlaveId(100)
             ->withHeartbeatPeriod(3)
             ->withDatabasesOnly(array_values($databases))

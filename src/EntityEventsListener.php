@@ -22,54 +22,38 @@ use function is_object;
 final class EntityEventsListener
 {
     /**
-     * @var RepositoryInterface<E>
-     */
-    private $repository;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
      * @var Mapper<E>
      */
-    private $mapper;
-
-    /**
-     * @var PlatformInterface
-     */
-    private $platform;
+    private readonly Mapper $mapper;
+    private readonly PlatformInterface $platform;
 
     /**
      * @var array<callable(E, WriteRowsDTO=):void>
      */
-    private $insertListeners = [];
+    private array $insertListeners = [];
 
     /**
      * @var array<callable(E, E, UpdateRowsDTO=):void>
      */
-    private $updateListeners = [];
+    private array $updateListeners = [];
 
     /**
      * @var array<callable(E, DeleteRowsDTO=):void>
      */
-    private $deleteListeners = [];
+    private array $deleteListeners = [];
 
     /**
-     * EntityEventsListener constructor.
-     *
-     * @param RepositoryInterface<E> $repository
-     * @param LoggerInterface|null $logger
-     *
      * @throws \Bdf\Prime\Exception\PrimeException
      */
-    public function __construct(RepositoryInterface $repository, ?LoggerInterface $logger = null)
-    {
-        $this->repository = $repository;
+    public function __construct(
+        /**
+         * @var RepositoryInterface<E>
+         */
+        private readonly RepositoryInterface $repository,
+        private readonly LoggerInterface $logger = new NullLogger()
+    ) {
         $this->mapper = $repository->mapper();
         $this->platform = $repository->connection()->platform();
-        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
@@ -148,7 +132,7 @@ final class EntityEventsListener
      * @param array $value
      * @return E
      */
-    private function entity(array $value)
+    private function entity(array $value): object
     {
         return $this->mapper->prepareFromRepository($value, $this->platform);
     }
